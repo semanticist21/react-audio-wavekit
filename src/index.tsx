@@ -1,21 +1,27 @@
-import { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { unwrapPromise } from "./suspense-utils";
 
 export interface AudioWaveformProps {
   /** Audio blob to visualize */
   blob: Blob | null;
-  /** Width of each bar in pixels */
-  barWidth?: number;
-  /** Gap between bars in pixels */
-  gap?: number;
-  /** Border radius of bars */
-  barRadius?: number;
   /** Additional class name for the canvas */
   className?: string;
+  /** Inline styles for the canvas (supports CSS variables for bar customization) */
+  style?: React.CSSProperties & {
+    "--bar-width"?: string | number;
+    "--bar-gap"?: string | number;
+    "--bar-radius"?: string | number;
+  };
+  /** Enable Suspense support. When true, wrap component with <Suspense> for loading state */
+  suspense?: boolean;
 }
 
 export interface AudioWaveformRef {
   canvas: HTMLCanvasElement | null;
 }
+
+// Promise cache for Suspense support (automatic garbage collection)
+const audioDataCache = new WeakMap<Blob, Promise<number[]>>();
 
 async function decodeAudioBlob(blob: Blob, sampleCount: number): Promise<number[]> {
   const audioContext = new AudioContext();
@@ -43,16 +49,42 @@ async function decodeAudioBlob(blob: Blob, sampleCount: number): Promise<number[
   return normalizedPeaks;
 }
 
+function getAudioData(blob: Blob, sampleCount: number): Promise<number[]> {
+  let promise = audioDataCache.get(blob);
+
+  if (!promise) {
+    promise = decodeAudioBlob(blob, sampleCount);
+    audioDataCache.set(blob, promise);
+  }
+
+  return promise;
+}
+
 export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(function AudioWaveform(
-  { blob, barWidth = 3, gap = 1, barRadius = 1, className = "" },
+  { blob, className = "", style, suspense: suspenseProp = false },
   ref
 ) {
+  // With polyfill, suspense works in both React 18 and 19
+  const suspense = suspenseProp;
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [peaks, setPeaks] = useState<number[] | null>(null);
-  const [error, setError] = useState<Error | null>(null);
   const sizeRef = useRef({ width: 0, height: 0 });
   const rafRef = useRef<number>(0);
+
+  const sampleCount = useMemo(() => Math.max(200, Math.ceil(window.innerWidth / 4)), []);
+
+  // Suspense mode: React 19-style Promise unwrapping
+  // Uses unwrapPromise() which throws Promise for Suspense boundary to catch
+  let peaksFromSuspense: number[] | null = null;
+  if (suspense && blob) {
+    peaksFromSuspense = unwrapPromise(getAudioData(blob, sampleCount));
+  }
+
+  // Legacy mode: useState with useEffect
+  const [peaksFromState, setPeaksFromState] = useState<number[] | null>(null);
+  const [error, setError] = useState<Error | null>(null);
   const blobRef = useRef<Blob | null>(null);
+
+  const peaks = suspense ? peaksFromSuspense : peaksFromState;
 
   useImperativeHandle(ref, () => ({
     canvas: canvasRef.current,
@@ -79,11 +111,17 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
+    // Read CSS variables with fallback defaults
+    const styles = getComputedStyle(canvas);
+    const barWidth = parseFloat(styles.getPropertyValue("--bar-width")) || 3;
+    const gap = parseFloat(styles.getPropertyValue("--bar-gap")) || 1;
+    const barRadius = parseFloat(styles.getPropertyValue("--bar-radius")) || 1;
+
     const totalBarWidth = barWidth + gap;
     const barsCount = Math.floor(width / totalBarWidth);
     const step = peaks.length / barsCount;
 
-    ctx.fillStyle = getComputedStyle(canvas).color || "#3b82f6";
+    ctx.fillStyle = styles.color || "#3b82f6";
 
     for (let i = 0; i < barsCount; i++) {
       const peakIndex = Math.min(Math.floor(i * step), peaks.length - 1);
@@ -100,7 +138,7 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
         ctx.fillRect(x, y, barWidth, barHeight);
       }
     }
-  }, [peaks, barWidth, gap, barRadius]);
+  }, [peaks]);
 
   // ResizeObserver with RAF throttling
   useEffect(() => {
@@ -127,10 +165,12 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
     };
   }, [drawWaveform]);
 
-  // Decode audio when blob changes
+  // Decode audio when blob changes (only in non-Suspense mode)
   useEffect(() => {
+    if (suspense) return; // Skip in Suspense mode
+
     if (!blob) {
-      setPeaks(null);
+      setPeaksFromState(null);
       setError(null);
       blobRef.current = null;
       return;
@@ -143,13 +183,10 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
     let cancelled = false;
     setError(null);
 
-    // Calculate sample count based on expected canvas width (estimate)
-    const sampleCount = Math.max(200, Math.ceil(window.innerWidth / (barWidth + gap)));
-
     decodeAudioBlob(blob, sampleCount)
       .then((data) => {
         if (!cancelled) {
-          setPeaks(data);
+          setPeaksFromState(data);
         }
       })
       .catch((err) => {
@@ -161,7 +198,7 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
     return () => {
       cancelled = true;
     };
-  }, [blob, barWidth, gap]);
+  }, [blob, suspense, sampleCount]);
 
   // Draw when peaks change
   useEffect(() => {
@@ -172,7 +209,7 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
     throw error;
   }
 
-  return <canvas ref={canvasRef} className={`size-full ${className}`} />;
+  return <canvas ref={canvasRef} className={className} style={style} />;
 });
 
 export const AudioVisualizer = AudioWaveform;
