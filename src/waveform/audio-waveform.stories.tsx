@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Suspense } from "react";
-import { AudioWaveform } from "./index";
+import { AudioWaveform } from "./audio-waveform";
 
 // Shared configuration
 const commonDecorator = (Story: React.ComponentType) => (

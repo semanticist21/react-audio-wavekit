@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
-import { decodeAudioBlob, getAudioData } from "./audio-decoder";
-import { unwrapPromise } from "./suspense-utils";
+import { decodeAudioBlob, getAudioData } from "./util-audio-decoder";
+import { unwrapPromise } from "./util-suspense";
 import { WaveformRenderer, type WaveformRendererRef } from "./waveform-renderer";
 
 // ============================================================================

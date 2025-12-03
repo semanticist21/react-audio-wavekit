@@ -1,13 +1,15 @@
 // ============================================================================
-// Public API Exports
+// Public API Exports (Tree-shakable)
 // ============================================================================
 
-// Utilities (advanced use)
-export { decodeAudioBlob, getAudioData } from "./audio-decoder";
-export type { AudioWaveformProps, AudioWaveformRef } from "./audio-waveform";
-// Main component (supports both regular and Suspense modes via `suspense` prop)
-// Default export
-export { AudioVisualizer, AudioWaveform, AudioWaveform as default } from "./audio-waveform";
-export type { WaveformRendererProps, WaveformRendererRef } from "./waveform-renderer";
-// Low-level renderer (advanced use)
-export { WaveformRenderer } from "./waveform-renderer";
+export type { LiveAudioVisualizerProps, LiveAudioVisualizerRef } from "./recorder/live-audio-visualizer";
+export { LiveAudioVisualizer } from "./recorder/live-audio-visualizer";
+// Recording components (for live recording)
+export type { UseAudioRecorderConfig, UseAudioRecorderReturn } from "./recorder/use-audio-recorder";
+export { useAudioRecorder } from "./recorder/use-audio-recorder";
+// Waveform components (for playback visualization)
+export type { AudioWaveformProps, AudioWaveformRef } from "./waveform/audio-waveform";
+export { AudioVisualizer, AudioWaveform, AudioWaveform as default } from "./waveform/audio-waveform";
+export { decodeAudioBlob, getAudioData } from "./waveform/util-audio-decoder";
+export type { WaveformRendererProps, WaveformRendererRef } from "./waveform/waveform-renderer";
+export { WaveformRenderer } from "./waveform/waveform-renderer";
