@@ -5,7 +5,23 @@
 export async function decodeAudioBlob(blob: Blob, sampleCount: number): Promise<number[]> {
   const audioContext = new AudioContext();
   const arrayBuffer = await blob.arrayBuffer();
-  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+  // Check if blob has data
+  if (arrayBuffer.byteLength === 0) {
+    await audioContext.close();
+    throw new Error("Audio blob is empty");
+  }
+
+  let audioBuffer: AudioBuffer;
+  try {
+    audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+  } catch {
+    await audioContext.close();
+    throw new Error(
+      `Unable to decode audio data (type: ${blob.type}, size: ${blob.size} bytes). ` +
+        `This may be due to an unsupported audio format or corrupted data.`
+    );
+  }
 
   const channelData = audioBuffer.getChannelData(0);
   const blockSize = Math.floor(channelData.length / sampleCount);

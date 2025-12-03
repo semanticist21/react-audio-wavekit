@@ -27,7 +27,7 @@
     "build": "vite build",
     "dev": "vite build --watch",
     "storybook": "storybook dev -p 6006",
-    "check": "biome check .",
+    "check": "biome check . && tsgo --noEmit",
     "fix": "biome check --write ."
   },
   "engines": {
@@ -45,6 +45,7 @@
     "@types/node": "^24.10.1",
     "@types/react": "19.2.0",
     "@types/react-dom": "19.2.0",
+    "@typescript/native-preview": "^7.0.0-dev.20251203.1",
     "@vitejs/plugin-react": "^5.1.1",
     "react": "19.2.0",
     "react-dom": "19.2.0",

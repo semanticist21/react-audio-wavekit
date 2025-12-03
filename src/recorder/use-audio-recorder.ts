@@ -11,6 +11,10 @@ export interface UseAudioRecorderConfig {
    * @default true
    */
   audioConstraints?: MediaTrackConstraints | boolean;
+  /**
+   * Callback when recording is complete
+   */
+  onRecordingComplete?: (blob: Blob) => void;
 }
 
 export interface UseAudioRecorderReturn {
@@ -43,7 +47,7 @@ export interface UseAudioRecorderReturn {
  * Based on react-audio-visualize patterns
  */
 export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioRecorderReturn => {
-  const { mimeType = "audio/webm", audioConstraints = true } = config;
+  const { mimeType = "audio/webm", audioConstraints = true, onRecordingComplete } = config;
 
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
@@ -102,6 +106,7 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
         // Create final blob from chunks
         const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType });
         setRecordingBlob(blob);
+        onRecordingComplete?.(blob);
         setIsRecording(false);
         setIsPaused(false);
 
@@ -129,7 +134,7 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
       setError(error);
       console.error("Failed to start recording:", error);
     }
-  }, [mimeType, audioConstraints]);
+  }, [mimeType, audioConstraints, onRecordingComplete]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorder && isRecording) {
@@ -161,12 +166,10 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
     setError(null);
   }, [mediaRecorder, isRecording]);
 
-  // Cleanup on unmount
+  // Cleanup on unmount only (empty dependency array)
   useEffect(() => {
     return () => {
-      if (mediaRecorder && isRecording) {
-        mediaRecorder.stop();
-      }
+      // Use refs to get current values at cleanup time
       if (streamRef.current) {
         for (const track of streamRef.current.getTracks()) {
           track.stop();
@@ -176,7 +179,7 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
         clearInterval(timerRef.current);
       }
     };
-  }, [mediaRecorder, isRecording]);
+  }, []);
 
   return {
     startRecording,

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-React component library for audio waveform visualization. Outputs ESM + CJS bundles with TypeScript declarations.
+React component library for audio waveform visualization and live recording. Outputs ESM + CJS bundles with TypeScript declarations. Tree-shakable exports for optimal bundle size.
 
 ## Commands
 
@@ -13,39 +13,56 @@ bun run build           # Build library to dist/ (ESM, CJS, .d.ts)
 bun run dev             # Watch mode for development
 bun run storybook       # Run Storybook dev server (port 6006)
 bun run build-storybook # Build Storybook for production
-bun run check           # Check code with Biome (actual command)
-bun run fix             # Fix linting issues with Biome (actual command)
+bun run check           # Check code with Biome + TypeScript (tsgo)
+bun run fix             # Fix linting issues with Biome
 ```
 
-**Note:** Requires Node.js 20.19+ or 22.12+ (Vite 7 requirement). Use `nvm use default` if needed.
+**Note:** Requires Node.js 20.19+ or 22.12+ (Vite 7 requirement).
 
 ## Architecture
 
+```
+src/
+├── index.tsx              # Public API exports (tree-shakable)
+├── waveform/              # Static waveform visualization
+│   ├── audio-waveform.tsx    # Main component (Suspense-enabled)
+│   ├── waveform-renderer.tsx # Canvas rendering logic
+│   ├── util-audio-decoder.ts # Web Audio API decoding
+│   └── util-suspense.ts      # React Suspense cache
+└── recorder/              # Live recording components
+    ├── live-audio-visualizer.tsx  # Real-time frequency visualization
+    └── use-audio-recorder.ts      # MediaRecorder hook
+```
+
 - **Build:** Vite 7 library mode with `vite-plugin-dts` for type generation
-- **Styling:** Tailwind CSS v4 (via `@tailwindcss/vite` plugin) - classes only, no CSS bundled
+- **Styling:** Tailwind CSS v4 - classes only, no CSS bundled
 - **Output:** `dist/index.js` (ESM), `dist/index.cjs` (CJS), `dist/index.d.ts` (types)
 - **Externals:** React/ReactDOM are peer dependencies, not bundled
-- **Linting/Formatting:** Biome for fast code quality checks and formatting
-- **Dev Tools:** Storybook for component development and testing
+- **Linting:** Biome for code quality, tsgo for type checking
 
 ## Code Conventions
 
-- **File naming:** Use kebab-case for all file names (e.g., `audio-waveform.tsx`, `my-component.stories.tsx`)
-- **Commit messages:** Follow conventional commit format with title only
+- **File naming:** kebab-case (e.g., `audio-waveform.tsx`, `use-audio-recorder.ts`)
+- **Commit messages:** Conventional commit format, title only
 
 ## Component API
 
-The main `AudioWaveform` component accepts:
-- `blob`: Audio Blob to visualize (required for waveform display)
-- `barWidth`, `gap`, `barRadius`: Visual customization (optional)
-- `className`: Tailwind classes for styling (supports `text-*` for bar color, `bg-*` for background)
+**AudioWaveform** - Static waveform from audio blob:
+- `blob`: Audio Blob to visualize
+- `className`: Tailwind classes (`text-*` for bar color, `bg-*` for background)
+- `style`: CSS variables for bar customization (`--bar-width`, `--bar-gap`, `--bar-radius`)
 
-Key implementation detail: Canvas uses `text-inherit` class to enable Tailwind color inheritance via `getComputedStyle(canvas).color`.
+**LiveAudioVisualizer** - Real-time recording visualization:
+- `mediaRecorder`: MediaRecorder instance from `useAudioRecorder`
+- `className`: Same Tailwind pattern as AudioWaveform
 
-## Key Decisions
+**useAudioRecorder** - Recording hook:
+- Returns: `{ startRecording, stopRecording, mediaRecorder, recordingBlob, isRecording, error }`
 
-- React 19.2.0 with exact version pinning for type compatibility
-- Library consumers must include this package in their Tailwind `content` config
-- No CSS is bundled - consumers use their own Tailwind setup
+## Key Implementation Details
+
+- Canvas uses `text-inherit` class to enable Tailwind color inheritance via `getComputedStyle(canvas).color`
+- Bar styling via CSS custom properties: `[--bar-width:3]`, `[--bar-gap:1]`, `[--bar-radius:1.5]` or `style` prop
 - Audio decoding uses Web Audio API (`AudioContext.decodeAudioData`)
-- Waveform rendering uses canvas with device pixel ratio support
+- Device pixel ratio support for sharp canvas rendering
+- Library consumers must include this package in their Tailwind `content` config
