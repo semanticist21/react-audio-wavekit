@@ -1,9 +1,10 @@
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
-import { decodeAudioBlob } from "./audio-decoder";
+import { decodeAudioBlob, getAudioData } from "./audio-decoder";
+import { unwrapPromise } from "./suspense-utils";
 import { WaveformRenderer, type WaveformRendererRef } from "./waveform-renderer";
 
 // ============================================================================
-// AudioWaveform without Suspense (B)
+// AudioWaveform - Unified Component (with optional Suspense support)
 // ============================================================================
 
 export interface AudioWaveformProps {
@@ -17,6 +18,8 @@ export interface AudioWaveformProps {
     "--bar-gap"?: string | number;
     "--bar-radius"?: string | number;
   };
+  /** Enable Suspense mode (requires Suspense boundary in parent) */
+  suspense?: boolean;
 }
 
 export interface AudioWaveformRef {
@@ -24,7 +27,7 @@ export interface AudioWaveformRef {
 }
 
 export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(function AudioWaveform(
-  { blob, className, style },
+  { blob, className, style, suspense = false },
   ref
 ) {
   const [peaks, setPeaks] = useState<number[] | null>(null);
@@ -43,8 +46,13 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
     }
   }, [ref]);
 
-  // Decode audio when blob changes
+  // Suspense mode: Use React 19-style Promise unwrapping
+  const suspensePeaks = blob && suspense ? unwrapPromise(getAudioData(blob, sampleCount)) : null;
+
+  // Non-suspense mode: Decode audio when blob changes
   useEffect(() => {
+    if (suspense) return; // Skip state management in suspense mode
+
     if (!blob) {
       setPeaks(null);
       setError(null);
@@ -74,13 +82,15 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
     return () => {
       cancelled = true;
     };
-  }, [blob, sampleCount]);
+  }, [blob, sampleCount, suspense]);
 
-  if (error) {
+  if (!suspense && error) {
     throw error;
   }
 
-  return <WaveformRenderer ref={rendererRef} peaks={peaks} className={className} style={style} />;
+  const finalPeaks = suspense ? suspensePeaks : peaks;
+
+  return <WaveformRenderer ref={rendererRef} peaks={finalPeaks} className={className} style={style} />;
 });
 
 export const AudioVisualizer = AudioWaveform;

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Suspense } from "react";
-import { AudioWaveform, AudioWaveformSuspense } from "./index";
+import { AudioWaveform } from "./index";
 
 // Shared configuration
 const commonDecorator = (Story: React.ComponentType) => (
@@ -110,9 +110,10 @@ export const WithSuspense: Story = {
           </div>
         }
       >
-        <AudioWaveformSuspense
+        <AudioWaveform
           {...args}
           blob={audioBlob}
+          suspense
           className="text-purple-500 size-full [--bar-width:3] [--bar-gap:1] [--bar-radius:1.5]"
         />
       </Suspense>
