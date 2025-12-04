@@ -23,17 +23,21 @@ bun run fix             # Fix linting issues with Biome
 
 ```
 src/
-├── index.tsx              # Public API exports (tree-shakable)
+├── index.css              # Tailwind import (Storybook only)
 ├── waveform/              # Static waveform visualization
-│   ├── audio-waveform.tsx    # Main component (Suspense-enabled)
+│   ├── index.tsx             # Main AudioWaveform component (Suspense-enabled)
 │   ├── waveform-renderer.tsx # Canvas rendering logic
 │   ├── util-audio-decoder.ts # Web Audio API decoding
 │   └── util-suspense.ts      # React Suspense cache
-└── recorder/              # Live recording components
-    ├── live-audio-visualizer.tsx  # Real-time frequency bars
-    ├── recording-waveform.tsx     # Timeline waveform (grows over time)
-    ├── use-audio-analyser.ts      # Shared Web Audio setup hook
-    └── use-audio-recorder.ts      # MediaRecorder hook
+├── recorder/              # Live recording components
+│   ├── live-visualizer/      # Real-time frequency bars
+│   │   └── index.tsx
+│   ├── recording-waveform/   # Timeline waveform (Voice Memos style)
+│   │   └── index.tsx
+│   ├── use-audio-analyser.ts # Shared Web Audio setup hook
+│   └── use-audio-recorder.ts # MediaRecorder hook with pause/resume
+└── player/                # Storybook demo stories
+    └── audio-player.stories.tsx
 ```
 
 - **Build:** Vite 7 library mode with `vite-plugin-dts` for type generation
@@ -45,7 +49,7 @@ src/
 ## Code Conventions
 
 - **File naming:** kebab-case (e.g., `audio-waveform.tsx`, `use-audio-recorder.ts`)
-- **Commit messages:** Conventional commit format, title only (no body, no "Generated with Claude" footer)
+- **Commit messages:** Conventional commit format, title only
 
 ## Component API
 
@@ -64,7 +68,7 @@ src/
 - `sampleInterval`: How often to sample amplitude (default: 50ms)
 
 **useAudioRecorder** - Recording hook:
-- Returns: `{ startRecording, stopRecording, mediaRecorder, recordingBlob, isRecording, recordingTime, error }`
+- Returns: `{ startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, recordingBlob, isRecording, isPaused, recordingTime, error }`
 
 **useAudioAnalyser** - Shared Web Audio setup (used internally by both visualizers):
 - Creates AudioContext, AnalyserNode, connects MediaRecorder stream
