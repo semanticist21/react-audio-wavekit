@@ -18,8 +18,37 @@ const LiveStreamingRecorderRoot = forwardRef<HTMLDivElement, LiveStreamingRecord
     { children, className = "", style, mediaRecorder, fftSize, smoothingTimeConstant, sampleInterval, ...props },
     ref
   ) {
+    // WebKit 오버레이 스크롤바 스타일 주입 (한 번만 실행)
+    useEffect(() => {
+      const styleId = "live-streaming-recorder-scrollbar-style";
+      if (document.getElementById(styleId)) return;
+
+      const styleElement = document.createElement("style");
+      styleElement.id = styleId;
+      styleElement.textContent = `
+        .live-streaming-recorder-overlay-scrollbar::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+        .live-streaming-recorder-overlay-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .live-streaming-recorder-overlay-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(148, 163, 184, 0.3);
+          border-radius: 4px;
+        }
+        .live-streaming-recorder-overlay-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(148, 163, 184, 0.5);
+        }
+      `;
+      document.head.appendChild(styleElement);
+    }, []);
+
+    // 기본 스크롤바 스타일 적용 (LiveStreamingRecorder는 scrolling 컨셉)
+    const mergedClassName = `live-streaming-recorder-overlay-scrollbar [scrollbar-width:thin] [scrollbar-color:rgba(148,163,184,0.3)_transparent] ${className}`;
+
     return (
-      <div ref={ref} className={className} style={style} {...props}>
+      <div ref={ref} className={mergedClassName} style={style} {...props}>
         <LiveStreamingRecorderProvider
           mediaRecorder={mediaRecorder}
           fftSize={fftSize}
@@ -46,7 +75,7 @@ export interface LiveStreamingRecorderCanvasProps extends HTMLAttributes<HTMLCan
   barConfig?: BarConfig;
   /**
    * Show minimal bars when not recording (idle state)
-   * @default true
+   * @default false
    */
   showIdleState?: boolean;
   /**
@@ -60,13 +89,14 @@ export interface LiveStreamingRecorderCanvasProps extends HTMLAttributes<HTMLCan
 
 const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingRecorderCanvasProps>(
   function LiveStreamingRecorderCanvas(
-    { className = "", style, barConfig, showIdleState = true, growWidth = true, ...props },
+    { className = "", style, barConfig, showIdleState = false, growWidth = true, ...props },
     ref
   ) {
     const { amplitudes, isRecording, isPaused } = useLiveStreamingRecorderContext();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const animationRef = useRef<number | null>(null);
     const containerSizeRef = useRef({ width: 0, height: 0 });
+    const containerRef = useRef<HTMLElement | null>(null);
 
     // Forward ref
     useEffect(() => {
@@ -198,10 +228,13 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
       }
     }, [amplitudes, isRecording, barConfig, showIdleState, growWidth]);
 
-    // Track container size with ResizeObserver
+    // Track container size with ResizeObserver and get parent container reference
     useEffect(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
+
+      // 스크롤 가능한 부모 컨테이너 찾기
+      containerRef.current = canvas.parentElement;
 
       const resizeObserver = new ResizeObserver((entries) => {
         const entry = entries[0];
@@ -225,6 +258,12 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
       if (isRecording && !isPaused) {
         const draw = () => {
           drawWaveform();
+
+          // 녹음 중일 때 자동으로 오른쪽 끝으로 스크롤
+          if (growWidth && containerRef.current) {
+            containerRef.current.scrollLeft = containerRef.current.scrollWidth;
+          }
+
           animationRef.current = requestAnimationFrame(draw);
         };
         draw();
@@ -236,9 +275,9 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
           }
         };
       }
-      // Draw once when stopped or paused
+      // Draw once when stopped or paused (녹음 종료 후에도 파형 유지)
       drawWaveform();
-    }, [isRecording, isPaused, drawWaveform]);
+    }, [isRecording, isPaused, drawWaveform, growWidth]);
 
     return (
       <canvas

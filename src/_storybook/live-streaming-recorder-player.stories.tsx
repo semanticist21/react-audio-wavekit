@@ -48,11 +48,8 @@ function LiveStreamingRecorderPlayer() {
           )}
         </button>
 
-        {/* Waveform display area with scrolling container */}
-        <LiveStreamingRecorder.Root
-          mediaRecorder={mediaRecorder}
-          className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]"
-        >
+        {/* Waveform display area */}
+        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 bg-slate-100">
           <LiveStreamingRecorder.Canvas className="text-slate-600" />
         </LiveStreamingRecorder.Root>
 
@@ -123,10 +120,7 @@ function LiveStreamingRecorderPlayerWithPlay() {
           )}
         </button>
 
-        <LiveStreamingRecorder.Root
-          mediaRecorder={mediaRecorder}
-          className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]"
-        >
+        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 bg-slate-100">
           <LiveStreamingRecorder.Canvas className="text-slate-600" />
         </LiveStreamingRecorder.Root>
 
@@ -208,10 +202,7 @@ function LiveStreamingRecorderPlayerWithDownload() {
           )}
         </button>
 
-        <LiveStreamingRecorder.Root
-          mediaRecorder={mediaRecorder}
-          className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]"
-        >
+        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 bg-slate-100">
           <LiveStreamingRecorder.Canvas className="text-slate-600" />
         </LiveStreamingRecorder.Root>
 
@@ -285,16 +276,9 @@ export const Default: Story = {
           {/* Record/pause button UI */}
         </button>
 
-        {/* Timeline waveform visualization with scrolling container */}
-        <LiveStreamingRecorder.Root
-          mediaRecorder={mediaRecorder}
-          className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]"
-          // bg-slate-100: scrolling container background
-        >
-          <LiveStreamingRecorder.Canvas
-            className="w-full h-full text-slate-600"
-            // text-slate-600: bar color (inherited via text-inherit)
-          />
+        {/* Timeline waveform visualization */}
+        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 bg-slate-100">
+          <LiveStreamingRecorder.Canvas className="text-slate-600" />
         </LiveStreamingRecorder.Root>
 
         <button type="button" onClick={stopRecording} disabled={!isRecording}>

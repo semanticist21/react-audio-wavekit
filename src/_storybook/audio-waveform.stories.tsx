@@ -1,35 +1,42 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import {
-  Pause,
-  Play,
-  RotateCcw,
-  SkipBack,
-  SkipForward,
-  Volume2,
-} from "lucide-react";
+import { Pause, Play, RotateCcw, SkipBack, SkipForward, Volume2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { AudioWaveform } from "..";
 
 function AudioWaveformPlayer() {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string>("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const audioUrlRef = useRef<string>("");
 
-  // 3분 mp3 파일을 Blob으로 로드
+  // 3분 mp3 파일을 Blob으로 로드하고 URL 생성
   useEffect(() => {
     fetch("/sample-3min.mp3")
       .then((res) => res.blob())
-      .then(setAudioBlob)
+      .then((blob) => {
+        setAudioBlob(blob);
+        const url = URL.createObjectURL(blob);
+        audioUrlRef.current = url;
+        setAudioUrl(url);
+      })
       .catch(console.error);
+
+    // Cleanup: URL 해제
+    return () => {
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+      }
+    };
   }, []);
 
-  // audio 이벤트 리스너 설정
+  // audio 이벤트 리스너 설정 (audioUrl이 설정된 후 실행)
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || !audioUrl) return;
 
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
     const handleDurationChange = () => setDuration(audio.duration);
@@ -43,6 +50,11 @@ function AudioWaveformPlayer() {
     audio.addEventListener("play", handlePlay);
     audio.addEventListener("pause", handlePause);
 
+    // 초기 duration 설정
+    if (audio.duration) {
+      setDuration(audio.duration);
+    }
+
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("durationchange", handleDurationChange);
@@ -50,7 +62,7 @@ function AudioWaveformPlayer() {
       audio.removeEventListener("play", handlePlay);
       audio.removeEventListener("pause", handlePause);
     };
-  }, []);
+  }, [audioUrl]);
 
   const togglePlay = () => {
     const audio = audioRef.current;
@@ -115,9 +127,7 @@ function AudioWaveformPlayer() {
         {/* 헤더 */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-white">
-              Audio Waveform Player
-            </h2>
+            <h2 className="text-2xl font-bold text-white">Audio Waveform Player</h2>
             <p className="text-sm text-slate-400">3-minute sample track</p>
           </div>
           <div className="flex items-center gap-2 text-slate-400">
@@ -138,24 +148,19 @@ function AudioWaveformPlayer() {
         <div className="h-40 cursor-pointer rounded-xl bg-slate-950/50 p-4 ring-1 ring-slate-700/50 transition-all hover:ring-slate-600/50">
           <AudioWaveform
             blob={audioBlob}
-            className="h-full text-blue-500"
+            className="h-full w-full text-blue-500"
             currentTime={currentTime}
             duration={duration}
             onSeek={handleSeek}
-            playheadColor="#3b82f6"
-            playheadWidth={2}
+            playheadClassName="text-red-500 [--playhead-width:3]"
             barConfig={{ width: 3, gap: 1.5, radius: 2 }}
           />
         </div>
 
         {/* 시간 표시 */}
         <div className="flex items-center justify-between px-2 text-sm">
-          <span className="font-mono text-slate-400">
-            {formatTime(currentTime)}
-          </span>
-          <span className="font-mono text-slate-500">
-            {formatTime(duration)}
-          </span>
+          <span className="font-mono text-slate-400">{formatTime(currentTime)}</span>
+          <span className="font-mono text-slate-500">{formatTime(duration)}</span>
         </div>
 
         {/* 플레이어 컨트롤 */}
@@ -179,11 +184,7 @@ function AudioWaveformPlayer() {
             onClick={togglePlay}
             className="rounded-full bg-blue-500 p-4 text-white shadow-lg shadow-blue-500/25 transition-all hover:bg-blue-600 hover:shadow-blue-500/40"
           >
-            {isPlaying ? (
-              <Pause className="h-6 w-6" />
-            ) : (
-              <Play className="h-6 w-6 translate-x-0.5" />
-            )}
+            {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6 translate-x-0.5" />}
           </button>
           <button
             type="button"
@@ -195,10 +196,10 @@ function AudioWaveformPlayer() {
         </div>
 
         {/* 숨겨진 audio 요소 */}
-        {/* biome-ignore lint/a11y/useMediaCaption: Demo audio does not require captions */}
-        <audio ref={audioRef} className="hidden">
-          <source src="/sample-3min.mp3" type="audio/mpeg" />
-        </audio>
+        {audioUrl && (
+          // biome-ignore lint/a11y/useMediaCaption: Demo audio does not require captions
+          <audio ref={audioRef} src={audioUrl} className="hidden" />
+        )}
       </div>
     </div>
   );
@@ -269,8 +270,7 @@ export const Default: Story = {
           currentTime={currentTime}
           duration={duration}
           onSeek={handleSeek}
-          playheadColor="#3b82f6"
-          playheadWidth={2}
+          playheadClassName="text-blue-500 [--playhead-width:2]"
         />
       </div>
 

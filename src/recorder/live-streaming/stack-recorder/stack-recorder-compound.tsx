@@ -46,13 +46,16 @@ export interface LiveStreamingStackRecorderCanvasProps extends HTMLAttributes<HT
   barConfig?: BarConfig;
   /**
    * Show minimal bars when not recording (idle state)
-   * @default true
+   * @default false
    */
   showIdleState?: boolean;
 }
 
 const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingStackRecorderCanvasProps>(
-  function LiveStreamingStackRecorderCanvas({ className = "", style, barConfig, showIdleState = true, ...props }, ref) {
+  function LiveStreamingStackRecorderCanvas(
+    { className = "", style, barConfig, showIdleState = false, ...props },
+    ref
+  ) {
     const { amplitudes, isRecording, isPaused } = useLiveStreamingStackRecorderContext();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const animationRef = useRef<number | null>(null);

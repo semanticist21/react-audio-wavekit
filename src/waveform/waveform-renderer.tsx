@@ -18,10 +18,8 @@ export interface WaveformRendererProps {
   duration?: number;
   /** Callback when user clicks on waveform */
   onSeek?: (time: number) => void;
-  /** Playhead color */
-  playheadColor?: string;
-  /** Playhead width in pixels */
-  playheadWidth?: number;
+  /** Playhead class name for Tailwind styling (e.g., "text-red-500 [--playhead-width:3]") */
+  playheadClassName?: string;
 }
 
 export interface WaveformRendererRef {
@@ -29,10 +27,11 @@ export interface WaveformRendererRef {
 }
 
 export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRendererProps>(function WaveformRenderer(
-  { peaks, className = "", barConfig, currentTime, duration, onSeek, playheadColor = "#ef4444", playheadWidth = 2 },
+  { peaks, className = "", barConfig, currentTime, duration, onSeek, playheadClassName },
   ref
 ) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const playheadRef = useRef<HTMLSpanElement>(null);
   const sizeRef = useRef({ width: 0, height: 0 });
   const rafRef = useRef<number>(0);
 
@@ -103,12 +102,27 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
     }
 
     // Playhead 렌더링 (currentTime과 duration이 있을 때만)
-    if (currentTime !== undefined && duration !== undefined && duration > 0) {
+    if (currentTime !== undefined && duration !== undefined && duration > 0 && playheadRef.current) {
       const playheadX = (currentTime / duration) * width;
-      ctx.fillStyle = playheadColor;
-      ctx.fillRect(playheadX - playheadWidth / 2, 0, playheadWidth, height);
+
+      // playheadClassName에서 색상과 너비 추출 (Tailwind 지원)
+      const styles = getComputedStyle(playheadRef.current);
+      const finalColor = styles.color || "#ef4444"; // 기본값: 빨간색
+      let finalWidth = 2; // 기본값: 2px
+
+      // CSS 변수에서 너비 추출
+      const cssWidth = styles.getPropertyValue("--playhead-width").trim();
+      if (cssWidth) {
+        const parsed = Number.parseFloat(cssWidth);
+        if (!Number.isNaN(parsed)) {
+          finalWidth = parsed;
+        }
+      }
+
+      ctx.fillStyle = finalColor;
+      ctx.fillRect(playheadX - finalWidth / 2, 0, finalWidth, height);
     }
-  }, [peaks, barConfig, currentTime, duration, playheadColor, playheadWidth]);
+  }, [peaks, barConfig, currentTime, duration]);
 
   // ResizeObserver with RAF throttling
   useEffect(() => {
@@ -159,13 +173,19 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
   );
 
   return (
-    <canvas
-      ref={canvasRef}
-      className={className}
-      role="img"
-      aria-label="Audio waveform"
-      onClick={handleClick}
-      style={{ cursor: onSeek ? "pointer" : undefined }}
-    />
+    <>
+      <canvas
+        ref={canvasRef}
+        className={className}
+        role="img"
+        aria-label="Audio waveform"
+        onClick={handleClick}
+        style={{ cursor: onSeek ? "pointer" : undefined }}
+      />
+      {/* 숨겨진 요소: playheadClassName에서 스타일 추출용 */}
+      {playheadClassName && (
+        <span ref={playheadRef} className={playheadClassName} aria-hidden style={{ display: "none" }} />
+      )}
+    </>
   );
 });

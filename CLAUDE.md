@@ -12,7 +12,7 @@ React component library for audio waveform visualization and live recording. Out
 bun run build           # Build library to dist/ (ESM, CJS, .d.ts)
 bun run dev             # Watch mode for development
 bun run storybook       # Run Storybook dev server (port 6006)
-bun run build-storybook # Build Storybook for production
+bun run build-storybook # Build Storybook static site
 bun run check           # Check code with Biome + TypeScript (tsgo)
 bun run fix             # Fix linting issues with Biome
 ```
@@ -34,22 +34,21 @@ src/
 │   └── util-suspense.ts            # React Suspense cache
 ├── recorder/              # Live recording components
 │   ├── live-recorder/         # Real-time frequency bars
-│   │   ├── index.tsx             # Legacy component (deprecated)
 │   │   └── use-live-audio-data.ts # Headless hook
-│   ├── live-streaming-recorder/ # Timeline waveform (scrolling, Voice Memos style)
-│   │   ├── index.tsx                  # Legacy component (deprecated)
-│   │   ├── live-streaming-recorder-compound.tsx # Compound component API
-│   │   ├── live-streaming-recorder-context.tsx  # Context provider
+│   ├── live-streaming/        # Timeline waveform (scrolling, Voice Memos style)
+│   │   ├── recorder/
+│   │   │   ├── recorder-compound.tsx # Compound component API (LiveStreamingRecorder)
+│   │   │   └── recorder-context.tsx  # Context provider
 │   │   └── use-recording-amplitudes.ts # Headless hook
-│   ├── live-streaming-stack-recorder/ # Fixed width waveform (bars compress)
-│   │   ├── index.tsx                  # Legacy component (deprecated)
-│   │   ├── live-streaming-stack-recorder-compound.tsx # Compound component API
-│   │   └── live-streaming-stack-recorder-context.tsx  # Context provider
+│   ├── live-streaming-stack/  # Fixed width waveform (bars compress)
+│   │   ├── recorder/
+│   │   │   ├── recorder-compound.tsx # Compound component API (LiveStreamingStackRecorder)
+│   │   │   └── recorder-context.tsx  # Context provider
+│   │   └── use-recording-amplitudes.ts # Headless hook
 │   ├── use-audio-analyser.ts # Shared Web Audio setup hook
 │   └── use-audio-recorder.ts # MediaRecorder hook with pause/resume
 └── _storybook/            # Storybook demo stories
     ├── audio-waveform.stories.tsx
-    ├── live-recorder-player.stories.tsx
     ├── live-streaming-recorder-player.stories.tsx
     └── live-streaming-stack-recorder-player.stories.tsx
 ```
@@ -58,7 +57,6 @@ src/
 - **Simple Components:** Direct prop-based API for easy usage (AudioWaveform)
 - **Compound Components:** Flexible composition API for complex use cases (LiveStreamingRecorder, LiveStreamingStackRecorder)
 - **Headless Hooks (Recommended):** Extract raw data for custom UI implementations
-- **Legacy Components (Deprecated):** All-in-one components for backwards compatibility
 
 **Build System:**
 - **Build:** Vite 7 library mode with `vite-plugin-dts` for type generation
@@ -71,7 +69,7 @@ src/
 ## Code Conventions
 
 - **File naming:** kebab-case (e.g., `audio-waveform.tsx`, `use-audio-recorder.ts`)
-- **Component organization:** Feature folders contain `index.tsx` (legacy), `use-*.ts` (headless hook), and optional compound component files
+- **Component organization:** Feature folders contain `use-*.ts` (headless hook) and optional compound component files (`*-compound.tsx`, `*-context.tsx`)
 - **Exports:** All public APIs exported from `src/index.tsx` (auto-sorted by Biome)
 - **Imports:** Use relative paths; Biome auto-organizes import order
 - **Commit messages:** Conventional commit format, title only (no co-authored-by, no emoji)
@@ -183,12 +181,14 @@ src/
 
 2. **Adding New Components:**
    - Create feature folder under `recorder/` or `waveform/`
-   - Include: `index.tsx` (legacy) and `use-*.ts` (headless hook)
-   - For compound components, add `*-compound.tsx` and `*-context.tsx`
-   - Export all public APIs from `src/index.tsx`
+   - Include: `use-*.ts` (headless hook, recommended pattern)
+   - For compound components, add `recorder/recorder-compound.tsx` and `recorder/recorder-context.tsx`
+   - Export all public APIs from `src/index.tsx` (Biome auto-sorts)
    - Add Storybook story in `src/_storybook/`
 
 3. **Git Workflow:**
    - Commit message format: `type: description` (e.g., `feat: add pitch detection`, `fix: canvas memory leak`)
    - No co-authored-by, no emoji in commits
    - Always run checks before committing
+
+아직 출시 안한 라이브러리니까 호환성 생각하지말고 코딩좀해라

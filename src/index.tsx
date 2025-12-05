@@ -26,13 +26,6 @@ export { useAudioWaveform } from "./waveform/use-audio-waveform.js";
 export type { BarConfig, BarStyle } from "./waveform/util-canvas.js";
 
 // ============================================================================
-// Components
-// ============================================================================
-
-export type { LiveRecorderProps, LiveRecorderRef } from "./recorder/live-recorder/index.js";
-export { LiveRecorder } from "./recorder/live-recorder/index.js";
-
-// ============================================================================
 // Compound Components
 // ============================================================================
 

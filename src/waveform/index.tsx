@@ -23,10 +23,8 @@ export interface AudioWaveformProps {
   duration?: number;
   /** Callback when user clicks/seeks on waveform */
   onSeek?: (time: number) => void;
-  /** Playhead color (default: #ef4444 / red-500) */
-  playheadColor?: string;
-  /** Playhead width in pixels (default: 2) */
-  playheadWidth?: number;
+  /** Playhead class name for Tailwind styling (e.g., "text-red-500 [--playhead-width:3]") */
+  playheadClassName?: string;
 }
 
 export interface AudioWaveformRef {
@@ -34,7 +32,7 @@ export interface AudioWaveformRef {
 }
 
 export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(function AudioWaveform(
-  { blob, className, barConfig, suspense = false, currentTime, duration, onSeek, playheadColor, playheadWidth },
+  { blob, className, barConfig, suspense = false, currentTime, duration, onSeek, playheadClassName },
   ref
 ) {
   const [peaks, setPeaks] = useState<number[] | null>(null);
@@ -42,7 +40,8 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
   const blobRef = useRef<Blob | null>(null);
   const rendererRef = useRef<WaveformRendererRef>(null);
 
-  const sampleCount = useMemo(() => Math.max(200, Math.ceil(window.innerWidth / 4)), []);
+  // sampleCount: 화면 너비만큼 샘플을 가져와서 고해상도에서도 선명하게 표시
+  const sampleCount = useMemo(() => Math.max(500, Math.ceil(window.innerWidth)), []);
 
   // Forward ref to WaveformRenderer's canvas
   useEffect(() => {
@@ -106,8 +105,7 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
       currentTime={currentTime}
       duration={duration}
       onSeek={onSeek}
-      playheadColor={playheadColor}
-      playheadWidth={playheadWidth}
+      playheadClassName={playheadClassName}
     />
   );
 });
