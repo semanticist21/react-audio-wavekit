@@ -49,7 +49,7 @@ function LiveStreamingRecorderPlayer() {
         </button>
 
         {/* Waveform display area */}
-        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 bg-slate-100">
+        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 bg-slate-100 rounded-sm">
           <LiveStreamingRecorder.Canvas className="text-slate-600" />
         </LiveStreamingRecorder.Root>
 
@@ -120,7 +120,7 @@ function LiveStreamingRecorderPlayerWithPlay() {
           )}
         </button>
 
-        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 bg-slate-100">
+        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 bg-slate-100 rounded-sm">
           <LiveStreamingRecorder.Canvas className="text-slate-600" />
         </LiveStreamingRecorder.Root>
 
@@ -202,7 +202,7 @@ function LiveStreamingRecorderPlayerWithDownload() {
           )}
         </button>
 
-        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 bg-slate-100">
+        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 bg-slate-100 rounded-sm">
           <LiveStreamingRecorder.Canvas className="text-slate-600" />
         </LiveStreamingRecorder.Root>
 
@@ -277,7 +277,7 @@ export const Default: Story = {
         </button>
 
         {/* Timeline waveform visualization */}
-        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 bg-slate-100">
+        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 bg-slate-100 rounded-sm">
           <LiveStreamingRecorder.Canvas className="text-slate-600" />
         </LiveStreamingRecorder.Root>
 

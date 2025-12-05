@@ -172,8 +172,9 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
         // Set bar color
         ctx.fillStyle = barColor;
 
-        // Draw bars from amplitude data
+        // Draw bars from amplitude data (path batching으로 draw call 최소화)
         const minBarHeight = 2;
+        ctx.beginPath();
 
         if (growWidth) {
           // Scrolling mode: 각 amplitude마다 bar 하나씩
@@ -184,9 +185,7 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
             const x = i * totalBarWidth;
             const y = (containerHeight - barHeight) / 2;
 
-            ctx.beginPath();
             ctx.roundRect(x, y, barWidth, barHeight, barRadius);
-            ctx.fill();
           }
         } else {
           // Fixed width mode: amplitudes를 canvas width에 맞춰 압축
@@ -201,11 +200,11 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
             const x = i * totalBarWidth;
             const y = (containerHeight - barHeight) / 2;
 
-            ctx.beginPath();
             ctx.roundRect(x, y, barWidth, barHeight, barRadius);
-            ctx.fill();
           }
         }
+
+        ctx.fill();
       } else if (showIdleState) {
         // No data - draw idle state (minimal bars)
         canvas.style.width = "100%";
@@ -219,13 +218,13 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
         const minBarHeight = 2;
         const barCount = Math.floor((containerWidth + barGap) / totalBarWidth);
 
+        ctx.beginPath();
         for (let i = 0; i < barCount; i++) {
           const x = i * totalBarWidth;
           const y = (containerHeight - minBarHeight) / 2;
-          ctx.beginPath();
           ctx.roundRect(x, y, barWidth, minBarHeight, barRadius);
-          ctx.fill();
         }
+        ctx.fill();
       }
     }, [amplitudes, isRecording, appearance, showIdleState, growWidth]);
 

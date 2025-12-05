@@ -49,7 +49,7 @@ function LiveStreamingStackRecorderPlayer() {
         </button>
 
         {/* Fixed width waveform (bars compress as recording grows) */}
-        <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-lg bg-slate-100">
+        <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 bg-slate-100 rounded-sm">
           <LiveStreamingStackRecorder.Canvas className="text-slate-600" />
         </LiveStreamingStackRecorder.Root>
 
@@ -113,7 +113,7 @@ export const Default: Story = {
         {/* Fixed width waveform (bars compress as recording grows) */}
         <LiveStreamingStackRecorder.Root
           mediaRecorder={mediaRecorder}
-          className="h-12 w-72 rounded-lg bg-slate-100"
+          className="h-12 w-72 rounded-lg bg-slate-100 rounded-sm"
         >
           <LiveStreamingStackRecorder.Canvas
             className="text-slate-600"
@@ -186,7 +186,10 @@ function LiveStreamingStackRecorderPlayerWithPlay() {
           )}
         </button>
 
-        <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-lg bg-slate-100">
+        <LiveStreamingStackRecorder.Root
+          mediaRecorder={mediaRecorder}
+          className="h-12 w-72 rounded-lg bg-slate-100 rounded-sm"
+        >
           <LiveStreamingStackRecorder.Canvas className="text-slate-600" />
         </LiveStreamingStackRecorder.Root>
 
@@ -251,7 +254,7 @@ export const WithPlay: StoryObj<typeof LiveStreamingStackRecorderPlayerWithPlay>
 
         <LiveStreamingStackRecorder.Root
           mediaRecorder={mediaRecorder}
-          className="h-12 w-72 rounded-lg bg-slate-100"
+          className="h-12 w-72 rounded-lg bg-slate-100 rounded-sm"
         >
           <LiveStreamingStackRecorder.Canvas className="text-slate-600" />
         </LiveStreamingStackRecorder.Root>
@@ -332,7 +335,10 @@ function LiveStreamingStackRecorderPlayerWithDownload() {
           )}
         </button>
 
-        <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-lg bg-slate-100">
+        <LiveStreamingStackRecorder.Root
+          mediaRecorder={mediaRecorder}
+          className="h-12 w-72 rounded-lg bg-slate-100 rounded-sm"
+        >
           <LiveStreamingStackRecorder.Canvas className="text-slate-600" />
         </LiveStreamingStackRecorder.Root>
 
@@ -405,7 +411,7 @@ export const WithDownload: StoryObj<typeof LiveStreamingStackRecorderPlayerWithD
 
         <LiveStreamingStackRecorder.Root
           mediaRecorder={mediaRecorder}
-          className="h-12 w-72 rounded-lg bg-slate-100"
+          className="h-12 w-72 rounded-lg bg-slate-100 rounded-sm"
         >
           <LiveStreamingStackRecorder.Canvas className="text-slate-600" />
         </LiveStreamingStackRecorder.Root>

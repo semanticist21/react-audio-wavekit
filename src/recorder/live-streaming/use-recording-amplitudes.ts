@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import { useAudioAnalyser } from "../use-audio-analyser";
 import type { UseRecordingAmplitudesOptions, UseRecordingAmplitudesReturn } from "./types";
 
@@ -7,6 +7,10 @@ export type { UseRecordingAmplitudesOptions, UseRecordingAmplitudesReturn };
 /**
  * Headless hook for collecting amplitude timeline data from MediaRecorder
  * Samples RMS amplitude at regular intervals for timeline-based waveform visualization
+ *
+ * 성능 최적화: useSyncExternalStore 사용하여 불필요한 배열 복사 방지
+ * - 샘플링 시 amplitudeDataRef에 직접 push (배열 복사 없음)
+ * - 구독자에게 snapshot 제공 시에만 배열 참조 반환
  *
  * @example
  * ```tsx
@@ -31,9 +35,27 @@ export type { UseRecordingAmplitudesOptions, UseRecordingAmplitudesReturn };
 export function useRecordingAmplitudes(options: UseRecordingAmplitudesOptions): UseRecordingAmplitudesReturn {
   const { mediaRecorder, fftSize = 2048, smoothingTimeConstant = 0.4, sampleInterval = 50 } = options;
 
-  const [amplitudes, setAmplitudes] = useState<number[]>([]);
-  const samplingIntervalRef = useRef<number | null>(null);
+  // 외부 store 패턴: 배열 복사 없이 효율적인 업데이트
   const amplitudeDataRef = useRef<number[]>([]);
+  const listenersRef = useRef<Set<() => void>>(new Set());
+  const samplingIntervalRef = useRef<number | null>(null);
+
+  // useSyncExternalStore용 subscribe/getSnapshot
+  const subscribe = useCallback((onStoreChange: () => void) => {
+    listenersRef.current.add(onStoreChange);
+    return () => listenersRef.current.delete(onStoreChange);
+  }, []);
+
+  const getSnapshot = useCallback(() => amplitudeDataRef.current, []);
+
+  // 구독자들에게 변경 알림 (배열 복사 없음)
+  const notifyListeners = useCallback(() => {
+    for (const listener of listenersRef.current) {
+      listener();
+    }
+  }, []);
+
+  const amplitudes = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
   const { audioContextRef, analyserRef, dataArrayRef, bufferLengthRef } = useAudioAnalyser({
     mediaRecorder,
@@ -44,8 +66,8 @@ export function useRecordingAmplitudes(options: UseRecordingAmplitudesOptions): 
   // Clear amplitude data
   const clearAmplitudes = useCallback(() => {
     amplitudeDataRef.current = [];
-    setAmplitudes([]);
-  }, []);
+    notifyListeners();
+  }, [notifyListeners]);
 
   // MediaRecorder 인스턴스가 변경될 때만 amplitudes 초기화 (새로운 녹음 시작)
   const prevMediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -53,10 +75,10 @@ export function useRecordingAmplitudes(options: UseRecordingAmplitudesOptions): 
     if (mediaRecorder !== prevMediaRecorderRef.current) {
       // MediaRecorder 인스턴스 변경 = 새로운 녹음 시작 → amplitudes 초기화
       amplitudeDataRef.current = [];
-      setAmplitudes([]);
+      notifyListeners();
       prevMediaRecorderRef.current = mediaRecorder;
     }
-  }, [mediaRecorder]);
+  }, [mediaRecorder, notifyListeners]);
 
   // Sample amplitude periodically (pause/resume 시 amplitudes 보존)
   useEffect(() => {
@@ -83,9 +105,10 @@ export function useRecordingAmplitudes(options: UseRecordingAmplitudesOptions): 
       const rms = Math.sqrt(sum / bufferLength);
 
       // Store amplitude (0-1 range, slightly amplified)
+      // 배열 복사 없이 직접 push 후 구독자에게 알림
       const amplitude = Math.min(1, rms * 2);
       amplitudeDataRef.current.push(amplitude);
-      setAmplitudes([...amplitudeDataRef.current]);
+      notifyListeners();
     };
 
     const startSampling = () => {
@@ -119,7 +142,7 @@ export function useRecordingAmplitudes(options: UseRecordingAmplitudesOptions): 
       mediaRecorder.removeEventListener("resume", handleResume);
       stopSampling();
     };
-  }, [mediaRecorder, sampleInterval, analyserRef, dataArrayRef, bufferLengthRef]);
+  }, [mediaRecorder, sampleInterval, analyserRef, dataArrayRef, bufferLengthRef, notifyListeners]);
 
   return {
     amplitudes,

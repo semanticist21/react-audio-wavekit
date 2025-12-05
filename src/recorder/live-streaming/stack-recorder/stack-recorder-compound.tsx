@@ -59,6 +59,8 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
     const { amplitudes, isRecording, isPaused } = useLiveStreamingStackRecorderContext();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const animationRef = useRef<number | null>(null);
+    // Canvas 크기 캐싱 (ResizeObserver에서만 업데이트, 매 프레임 getBoundingClientRect 방지)
+    const sizeRef = useRef({ width: 0, height: 0 });
 
     // Forward ref
     useEffect(() => {
@@ -80,10 +82,10 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
       if (!ctx) return;
 
       const dpr = window.devicePixelRatio || 1;
-      // Container 크기를 가져옴 (고정 너비 유지)
-      const rect = canvas.getBoundingClientRect();
-      const containerWidth = rect.width;
-      const containerHeight = rect.height;
+      // 캐싱된 크기 사용 (layout thrashing 방지)
+      const containerWidth = sizeRef.current.width;
+      const containerHeight = sizeRef.current.height;
+      if (containerWidth === 0 || containerHeight === 0) return;
 
       // appearance에서 스타일 추출 (기본값 적용)
       const barColor = appearance?.barColor ?? DEFAULT_WAVEFORM_APPEARANCE.barColor;
@@ -109,10 +111,11 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
         // Set bar color
         ctx.fillStyle = barColor;
 
-        // Draw bars - amplitudes를 canvas width에 맞춰 다운샘플링
+        // Draw bars - amplitudes를 canvas width에 맞춰 다운샘플링 (path batching으로 draw call 최소화)
         const minBarHeight = 2;
         const barsCount = Math.floor(canvasWidth / totalBarWidth);
 
+        ctx.beginPath();
         for (let i = 0; i < barsCount; i++) {
           // 각 bar가 담당하는 amplitude 범위 계산 (downsample 방식)
           const startIdx = Math.floor((i * amplitudes.length) / barsCount);
@@ -129,10 +132,9 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
           const x = i * totalBarWidth;
           const y = (containerHeight - barHeight) / 2;
 
-          ctx.beginPath();
           ctx.roundRect(x, y, barWidth, barHeight, barRadius);
-          ctx.fill();
         }
+        ctx.fill();
       } else if (showIdleState) {
         // No data - draw idle state (minimal bars)
         canvas.width = containerWidth * dpr;
@@ -145,22 +147,31 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
         const minBarHeight = 2;
         const barCount = Math.floor((containerWidth + barGap) / totalBarWidth);
 
+        ctx.beginPath();
         for (let i = 0; i < barCount; i++) {
           const x = i * totalBarWidth;
           const y = (containerHeight - minBarHeight) / 2;
-          ctx.beginPath();
           ctx.roundRect(x, y, barWidth, minBarHeight, barRadius);
-          ctx.fill();
         }
+        ctx.fill();
       }
     }, [amplitudes, isRecording, appearance, showIdleState]);
 
-    // Track container size with ResizeObserver
+    // Track container size with ResizeObserver (크기를 캐싱하여 매 프레임 reflow 방지)
     useEffect(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
 
-      const resizeObserver = new ResizeObserver(() => {
+      const resizeObserver = new ResizeObserver((entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+
+        const { width, height } = entry.contentRect;
+        // 크기 변경 없으면 무시
+        if (sizeRef.current.width === width && sizeRef.current.height === height) return;
+
+        sizeRef.current = { width, height };
+
         // Container 크기 변경시 다시 그리기
         if (!isRecording) {
           drawWaveform();
