@@ -41,6 +41,12 @@ Static waveform visualization with playhead and click-to-seek.
 
 Real-time waveform visualization during recording using MediaRecorder API.
 
+### useAudioRecorder
+
+Headless hook to manage recording state. Use with recorder components below.
+
+Returns: `startRecording`, `stopRecording`, `pauseRecording`, `resumeRecording`, `mediaRecorder`, `recordingBlob`, `isRecording`, `isPaused`, `recordingTime`, `error`
+
 ### LiveStreamingRecorder
 
 ![LiveStreamingRecorder](https://react-audio-waveform.netlify.app/live-stream.png)
@@ -64,10 +70,6 @@ Fixed-width waveform where bars compress as recording grows.
 Real-time frequency bars visualization.
 
 [▶ Demo](https://react-audio-waveform.netlify.app/?path=/story/recorder-liverecorder--default)
-
-### useAudioRecorder
-
-Headless hook to manage recording state with pause/resume support.
 
 ---
 
