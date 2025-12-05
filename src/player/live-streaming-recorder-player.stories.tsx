@@ -60,7 +60,7 @@ function LiveStreamingRecorderPlayer() {
         {/* Waveform display area */}
         <RecordingWaveformLegacy
           mediaRecorder={mediaRecorder}
-          className="h-12 w-72 rounded-lg bg-slate-100 text-slate-400 [scrollbar-width:thin]"
+          className="h-12 w-72 rounded-lg bg-slate-100 text-green-500 [scrollbar-width:thin]"
         />
 
         {/* Stop button */}

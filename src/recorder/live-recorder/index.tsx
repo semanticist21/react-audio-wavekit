@@ -2,7 +2,7 @@ import { type ForwardedRef, forwardRef, useEffect, useImperativeHandle, useRef }
 import { getCanvasBarStyles } from "../../waveform/util-canvas";
 import { useAudioAnalyser } from "../use-audio-analyser";
 
-export interface LiveAudioVisualizerProps {
+export interface LiveRecorderProps {
   /**
    * MediaRecorder instance to visualize
    */
@@ -34,9 +34,14 @@ export interface LiveAudioVisualizerProps {
    * @default 0.8
    */
   smoothingTimeConstant?: number;
+  /**
+   * Show minimal bars when not recording (idle state)
+   * @default true
+   */
+  showIdleState?: boolean;
 }
 
-export interface LiveAudioVisualizerRef {
+export interface LiveRecorderRef {
   /** Get the canvas element */
   getCanvas: () => HTMLCanvasElement | null;
   /** Get the audio context */
@@ -49,10 +54,10 @@ export interface LiveAudioVisualizerRef {
  * Real-time audio visualizer for live recording
  * Visualizes audio from MediaRecorder using Web Audio API
  */
-export const LiveAudioVisualizer = forwardRef<LiveAudioVisualizerRef, LiveAudioVisualizerProps>(
+export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
   (
-    { mediaRecorder, className = "", style, fftSize = 2048, smoothingTimeConstant = 0.8 },
-    ref: ForwardedRef<LiveAudioVisualizerRef>
+    { mediaRecorder, className = "", style, fftSize = 2048, smoothingTimeConstant = 0.8, showIdleState = true },
+    ref: ForwardedRef<LiveRecorderRef>
   ) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const animationRef = useRef<number | null>(null);
@@ -70,7 +75,7 @@ export const LiveAudioVisualizer = forwardRef<LiveAudioVisualizerRef, LiveAudioV
       getAnalyser: () => analyserRef.current,
     }));
 
-    // Animation loop for rendering
+    // Animation loop for rendering (녹음 중)
     useEffect(() => {
       if (!mediaRecorder || !canvasRef.current) {
         return;
@@ -165,6 +170,41 @@ export const LiveAudioVisualizer = forwardRef<LiveAudioVisualizerRef, LiveAudioV
       };
     }, [mediaRecorder, analyserRef, dataArrayRef, bufferLengthRef]);
 
+    // Draw idle state (녹음 시작 전)
+    useEffect(() => {
+      if (!mediaRecorder && showIdleState && canvasRef.current) {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        const dpr = window.devicePixelRatio || 1;
+
+        // Read bar styles from CSS variables
+        const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas);
+
+        const { width, height } = canvas.getBoundingClientRect();
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
+
+        ctx.clearRect(0, 0, width, height);
+
+        // Draw idle state (minimal bars)
+        ctx.fillStyle = barColor;
+        const minBarHeight = 2;
+        const totalBarWidth = barWidth + gap;
+        const barCount = Math.floor((width + gap) / totalBarWidth);
+
+        for (let i = 0; i < barCount; i++) {
+          const x = i * totalBarWidth;
+          const y = (height - minBarHeight) / 2;
+          ctx.beginPath();
+          ctx.roundRect(x, y, barWidth, minBarHeight, barRadius);
+          ctx.fill();
+        }
+      }
+    }, [mediaRecorder, showIdleState]);
+
     return (
       <>
         <canvas
@@ -196,4 +236,4 @@ export const LiveAudioVisualizer = forwardRef<LiveAudioVisualizerRef, LiveAudioV
   }
 );
 
-LiveAudioVisualizer.displayName = "LiveAudioVisualizer";
+LiveRecorder.displayName = "LiveRecorder";

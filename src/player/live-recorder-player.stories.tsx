@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { LiveAudioVisualizer } from "..";
+import { LiveAudioVisualizer } from ".."; // Legacy export name
 import { useAudioRecorder } from "../recorder/use-audio-recorder";
 import rawSource from "./live-recorder-player.stories.tsx?raw";
 

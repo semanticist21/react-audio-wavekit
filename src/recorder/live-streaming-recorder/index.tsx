@@ -2,7 +2,7 @@ import { type ForwardedRef, forwardRef, useEffect, useImperativeHandle, useRef }
 import { getCanvasBarStyles } from "../../waveform/util-canvas";
 import { useAudioAnalyser } from "../use-audio-analyser";
 
-export interface RecordingWaveformProps {
+export interface LiveStreamingRecorderProps {
   /**
    * MediaRecorder instance to visualize
    */
@@ -39,9 +39,14 @@ export interface RecordingWaveformProps {
    * @default 50
    */
   sampleInterval?: number;
+  /**
+   * Show minimal bars when not recording (idle state)
+   * @default true
+   */
+  showIdleState?: boolean;
 }
 
-export interface RecordingWaveformRef {
+export interface LiveStreamingRecorderRef {
   /** Get the canvas element */
   getCanvas: () => HTMLCanvasElement | null;
   /** Get the scroll container element */
@@ -60,10 +65,18 @@ export interface RecordingWaveformRef {
  * Timeline-based waveform visualizer for recording
  * Shows a scrollable waveform that grows as recording progresses (like Voice Memos)
  */
-export const RecordingWaveform = forwardRef<RecordingWaveformRef, RecordingWaveformProps>(
+export const LiveStreamingRecorder = forwardRef<LiveStreamingRecorderRef, LiveStreamingRecorderProps>(
   (
-    { mediaRecorder, className = "", style, fftSize = 2048, smoothingTimeConstant = 0.4, sampleInterval = 50 },
-    ref: ForwardedRef<RecordingWaveformRef>
+    {
+      mediaRecorder,
+      className = "",
+      style,
+      fftSize = 2048,
+      smoothingTimeConstant = 0.4,
+      sampleInterval = 50,
+      showIdleState = true,
+    },
+    ref: ForwardedRef<LiveStreamingRecorderRef>
   ) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -279,7 +292,7 @@ export const RecordingWaveform = forwardRef<RecordingWaveformRef, RecordingWavef
             ctx.roundRect(x, y, barWidth, barHeight, barRadius);
             ctx.fill();
           }
-        } else {
+        } else if (showIdleState) {
           // No data - draw idle state (minimal bars)
           canvas.style.width = `${containerWidth}px`;
           canvas.style.height = `${containerHeight}px`;
@@ -302,7 +315,7 @@ export const RecordingWaveform = forwardRef<RecordingWaveformRef, RecordingWavef
           }
         }
       }
-    }, [mediaRecorder]);
+    }, [mediaRecorder, showIdleState]);
 
     return (
       <div ref={containerRef} className={`overflow-x-auto overflow-y-hidden ${className}`} style={style}>
@@ -333,4 +346,4 @@ export const RecordingWaveform = forwardRef<RecordingWaveformRef, RecordingWavef
   }
 );
 
-RecordingWaveform.displayName = "RecordingWaveform";
+LiveStreamingRecorder.displayName = "LiveStreamingRecorder";

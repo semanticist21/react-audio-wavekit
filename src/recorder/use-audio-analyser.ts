@@ -22,7 +22,7 @@ export interface UseAudioAnalyserReturn {
 
 /**
  * Hook to setup Web Audio API analyser for a MediaRecorder stream
- * Shared between LiveAudioVisualizer and RecordingWaveform
+ * Shared between LiveRecorder and LiveStreamingRecorder
  */
 export function useAudioAnalyser({
   mediaRecorder,

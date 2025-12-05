@@ -41,12 +41,12 @@ export { useAudioWaveform } from "./waveform/use-audio-waveform.js";
 // Legacy Components (Deprecated - use Compound Components instead)
 // ============================================================================
 
-export type { LiveAudioVisualizerProps, LiveAudioVisualizerRef } from "./recorder/live-recorder/index.js";
+export type { LiveRecorderProps, LiveRecorderRef } from "./recorder/live-recorder/index.js";
 // @deprecated Use LiveRecorder compound components instead
-export { LiveAudioVisualizer } from "./recorder/live-recorder/index.js";
-export type { RecordingWaveformProps, RecordingWaveformRef } from "./recorder/live-streaming-recorder/index.js";
+export { LiveRecorder as LiveAudioVisualizer } from "./recorder/live-recorder/index.js";
+export type { LiveStreamingRecorderProps, LiveStreamingRecorderRef } from "./recorder/live-streaming-recorder/index.js";
 // @deprecated Use LiveStreamingRecorder compound components instead
-export { RecordingWaveform as RecordingWaveformLegacy } from "./recorder/live-streaming-recorder/index.js";
+export { LiveStreamingRecorder as RecordingWaveformLegacy } from "./recorder/live-streaming-recorder/index.js";
 export type { AudioWaveformProps, AudioWaveformRef } from "./waveform/index.js";
 // @deprecated Use AudioWaveform compound components instead
 export { AudioVisualizer, AudioWaveform as AudioWaveformLegacy } from "./waveform/index.js";
