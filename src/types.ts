@@ -29,20 +29,3 @@ export interface AudioWaveformAppearance extends WaveformAppearance {
   /** Playhead 너비 (pixels). 기본값: 2 */
   playheadWidth?: number;
 }
-
-// ============================================================================
-// 기본값 상수
-// ============================================================================
-
-export const DEFAULT_WAVEFORM_APPEARANCE: Required<WaveformAppearance> = {
-  barColor: "#3b82f6",
-  barWidth: 3,
-  barGap: 1,
-  barRadius: 1.5,
-  barHeightScale: 0.9,
-};
-
-export const DEFAULT_PLAYHEAD_APPEARANCE = {
-  playheadColor: "#ef4444",
-  playheadWidth: 2,
-} as const;

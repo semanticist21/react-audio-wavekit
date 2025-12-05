@@ -154,7 +154,7 @@ function AudioWaveformPlayer() {
             onSeek={handleSeek}
             appearance={{
               barColor: "#3b82f6",
-              barWidth: 3,
+              barWidth: 1,
               barGap: 1.5,
               barRadius: 2,
               playheadColor: "#ef4444",
@@ -277,7 +277,7 @@ export const Default: Story = {
         onSeek={handleSeek}
         appearance={{
           barColor: "#3b82f6",
-          barWidth: 3,
+          barWidth: 1,
           barGap: 1.5,
           barRadius: 2,
           playheadColor: "#ef4444",

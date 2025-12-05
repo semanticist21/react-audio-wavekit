@@ -1,5 +1,6 @@
 import { forwardRef, type HTMLAttributes, type ReactNode, useCallback, useEffect, useRef } from "react";
-import { DEFAULT_WAVEFORM_APPEARANCE, type WaveformAppearance } from "../../../types";
+import { DEFAULT_WAVEFORM_APPEARANCE } from "../../../constants";
+import type { WaveformAppearance } from "../../../types";
 import type { UseRecordingAmplitudesOptions } from "../use-recording-amplitudes";
 import { LiveStreamingRecorderProvider, useLiveStreamingRecorderContext } from "./recorder-context";
 

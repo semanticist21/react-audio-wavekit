@@ -1,5 +1,6 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from "react";
-import { type AudioWaveformAppearance, DEFAULT_PLAYHEAD_APPEARANCE, DEFAULT_WAVEFORM_APPEARANCE } from "../types";
+import { DEFAULT_PLAYHEAD_APPEARANCE, DEFAULT_WAVEFORM_APPEARANCE } from "../constants";
+import type { AudioWaveformAppearance } from "../types";
 
 // ============================================================================
 // Common Waveform Renderer (A)
