@@ -113,5 +113,5 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
     drawWaveform();
   }, [drawWaveform]);
 
-  return <canvas ref={canvasRef} className={className} style={style} />;
+  return <canvas ref={canvasRef} className={className} style={style} role="img" aria-label="Audio waveform" />;
 });

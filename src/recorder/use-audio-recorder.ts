@@ -60,6 +60,18 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
   const timerRef = useRef<number | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  // useCallback 안정성을 위한 ref (최신 state 값 추적)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const isRecordingRef = useRef(false);
+  const isPausedRef = useRef(false);
+
+  // State를 ref와 동기화
+  useEffect(() => {
+    mediaRecorderRef.current = mediaRecorder;
+    isRecordingRef.current = isRecording;
+    isPausedRef.current = isPaused;
+  }, [mediaRecorder, isRecording, isPaused]);
+
   // Timer for recording duration
   useEffect(() => {
     if (isRecording && !isPaused) {
@@ -138,34 +150,38 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
   }, [mimeType, audioConstraints, onRecordingComplete]);
 
   const stopRecording = useCallback(() => {
-    if (mediaRecorder && isRecording) {
-      mediaRecorder.stop();
+    // ref를 사용해 최신 값 참조 (의존성 배열 안정화)
+    if (mediaRecorderRef.current && isRecordingRef.current) {
+      mediaRecorderRef.current.stop();
     }
-  }, [mediaRecorder, isRecording]);
+  }, []);
 
   const pauseRecording = useCallback(() => {
-    if (mediaRecorder && isRecording && !isPaused) {
-      mediaRecorder.pause();
+    // ref를 사용해 최신 값 참조 (의존성 배열 안정화)
+    if (mediaRecorderRef.current && isRecordingRef.current && !isPausedRef.current) {
+      mediaRecorderRef.current.pause();
       setIsPaused(true);
     }
-  }, [mediaRecorder, isRecording, isPaused]);
+  }, []);
 
   const resumeRecording = useCallback(() => {
-    if (mediaRecorder && isRecording && isPaused) {
-      mediaRecorder.resume();
+    // ref를 사용해 최신 값 참조 (의존성 배열 안정화)
+    if (mediaRecorderRef.current && isRecordingRef.current && isPausedRef.current) {
+      mediaRecorderRef.current.resume();
       setIsPaused(false);
     }
-  }, [mediaRecorder, isRecording, isPaused]);
+  }, []);
 
   const clearRecording = useCallback(() => {
-    if (mediaRecorder && isRecording) {
-      mediaRecorder.stop();
+    // ref를 사용해 최신 값 참조 (의존성 배열 안정화)
+    if (mediaRecorderRef.current && isRecordingRef.current) {
+      mediaRecorderRef.current.stop();
     }
     audioChunksRef.current = [];
     setRecordingBlob(null);
     setRecordingTime(0);
     setError(null);
-  }, [mediaRecorder, isRecording]);
+  }, []);
 
   // Cleanup on unmount only (empty dependency array)
   useEffect(() => {

@@ -1,4 +1,5 @@
 import { type ForwardedRef, forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import { getCanvasBarStyles } from "../../waveform/util-canvas";
 import { useAudioAnalyser } from "../use-audio-analyser";
 
 export interface RecordingWaveformProps {
@@ -115,11 +116,8 @@ export const RecordingWaveform = forwardRef<RecordingWaveformRef, RecordingWavef
       const canvas = canvasRef.current;
       const container = containerRef.current;
 
-      // Get CSS variables for bar styling
-      const computedStyle = getComputedStyle(canvas);
-      const barWidth = Number.parseInt(computedStyle.getPropertyValue("--bar-width") || "3", 10);
-      const gap = Number.parseInt(computedStyle.getPropertyValue("--bar-gap") || "1", 10);
-      const barRadius = Number.parseFloat(computedStyle.getPropertyValue("--bar-radius") || "1.5");
+      // CSS 변수에서 bar 스타일 읽기 (한 번만 실행)
+      const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas);
 
       // Reset amplitude data when starting new recording
       amplitudeDataRef.current = [];
@@ -173,8 +171,7 @@ export const RecordingWaveform = forwardRef<RecordingWaveformRef, RecordingWavef
         // Clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Get bar color from text-inherit
-        const barColor = getComputedStyle(canvas).color;
+        // Bar 색상 설정 (클로저로 캡처된 값 사용)
         ctx.fillStyle = barColor;
 
         // Draw bars from amplitude data
@@ -251,11 +248,8 @@ export const RecordingWaveform = forwardRef<RecordingWaveformRef, RecordingWavef
         const containerHeight = container.clientHeight;
         const containerWidth = container.clientWidth;
 
-        // Get CSS variables for bar styling
-        const computedStyle = getComputedStyle(canvas);
-        const barWidth = Number.parseInt(computedStyle.getPropertyValue("--bar-width") || "3", 10);
-        const gap = Number.parseInt(computedStyle.getPropertyValue("--bar-gap") || "1", 10);
-        const barRadius = Number.parseFloat(computedStyle.getPropertyValue("--bar-radius") || "1.5");
+        // CSS 변수에서 bar 스타일 읽기
+        const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas);
 
         const amplitudeData = amplitudeDataRef.current;
         const totalBarWidth = barWidth + gap;
@@ -272,7 +266,6 @@ export const RecordingWaveform = forwardRef<RecordingWaveformRef, RecordingWavef
 
           ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-          const barColor = getComputedStyle(canvas).color;
           ctx.fillStyle = barColor;
           const minBarHeight = 2;
           const height = containerHeight;
@@ -296,7 +289,6 @@ export const RecordingWaveform = forwardRef<RecordingWaveformRef, RecordingWavef
 
           ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-          const barColor = getComputedStyle(canvas).color;
           ctx.fillStyle = barColor;
           const minBarHeight = 2;
           const barCount = Math.floor(containerWidth / totalBarWidth);
@@ -314,7 +306,28 @@ export const RecordingWaveform = forwardRef<RecordingWaveformRef, RecordingWavef
 
     return (
       <div ref={containerRef} className={`overflow-x-auto overflow-y-hidden ${className}`} style={style}>
-        <canvas ref={canvasRef} className="text-inherit h-full min-w-full" />
+        <canvas ref={canvasRef} className="text-inherit h-full min-w-full" aria-hidden="true" tabIndex={-1} />
+        <span
+          style={{
+            position: "absolute",
+            width: "1px",
+            height: "1px",
+            padding: "0",
+            margin: "-1px",
+            overflow: "hidden",
+            clip: "rect(0, 0, 0, 0)",
+            whiteSpace: "nowrap",
+            border: "0",
+          }}
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {mediaRecorder?.state === "recording"
+            ? "Recording in progress"
+            : mediaRecorder?.state === "paused"
+              ? "Recording paused"
+              : "Recording stopped"}
+        </span>
       </div>
     );
   }

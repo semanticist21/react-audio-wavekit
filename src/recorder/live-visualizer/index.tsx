@@ -1,4 +1,5 @@
 import { type ForwardedRef, forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import { getCanvasBarStyles } from "../../waveform/util-canvas";
 import { useAudioAnalyser } from "../use-audio-analyser";
 
 export interface LiveAudioVisualizerProps {
@@ -77,10 +78,8 @@ export const LiveAudioVisualizer = forwardRef<LiveAudioVisualizerRef, LiveAudioV
 
       const canvas = canvasRef.current;
 
-      // Get CSS variables for bar styling
-      const barWidth = Number.parseInt(getComputedStyle(canvas).getPropertyValue("--bar-width") || "3", 10);
-      const gap = Number.parseInt(getComputedStyle(canvas).getPropertyValue("--bar-gap") || "1", 10);
-      const barRadius = Number.parseInt(getComputedStyle(canvas).getPropertyValue("--bar-radius") || "1.5", 10);
+      // CSS 변수에서 bar 스타일 읽기 (한 번만 실행)
+      const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas);
 
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
@@ -116,8 +115,7 @@ export const LiveAudioVisualizer = forwardRef<LiveAudioVisualizerRef, LiveAudioV
         const totalBarWidth = barWidth + gap;
         const numBars = Math.floor(width / totalBarWidth);
 
-        // Get bar color from text-inherit
-        const barColor = getComputedStyle(canvas).color;
+        // Bar 색상 설정 (클로저로 캡처된 값 사용)
         ctx.fillStyle = barColor;
 
         // Draw bars
@@ -167,7 +165,34 @@ export const LiveAudioVisualizer = forwardRef<LiveAudioVisualizerRef, LiveAudioV
       };
     }, [mediaRecorder, analyserRef, dataArrayRef, bufferLengthRef]);
 
-    return <canvas ref={canvasRef} className={`text-inherit ${className}`} style={style} />;
+    return (
+      <>
+        <canvas
+          ref={canvasRef}
+          className={`text-inherit ${className}`}
+          style={style}
+          aria-hidden="true"
+          tabIndex={-1}
+        />
+        <span
+          style={{
+            position: "absolute",
+            width: "1px",
+            height: "1px",
+            padding: "0",
+            margin: "-1px",
+            overflow: "hidden",
+            clip: "rect(0, 0, 0, 0)",
+            whiteSpace: "nowrap",
+            border: "0",
+          }}
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {mediaRecorder?.state === "recording" ? "Recording audio" : "Audio recording paused"}
+        </span>
+      </>
+    );
   }
 );
 
