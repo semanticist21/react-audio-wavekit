@@ -1,3 +1,4 @@
+import { useOverlayScrollbars } from "overlayscrollbars-react";
 import { forwardRef, type HTMLAttributes, type ReactNode, useCallback, useEffect, useId, useRef } from "react";
 import { DEFAULT_SCROLLBAR_APPEARANCE, DEFAULT_WAVEFORM_APPEARANCE } from "../../../constants";
 import type { LiveStreamingRecorderAppearance } from "../../../types";
@@ -31,82 +32,94 @@ const LiveStreamingRecorderRoot = forwardRef<HTMLDivElement, LiveStreamingRecord
     },
     ref
   ) {
-    // 고유한 scrollbar 클래스명 생성 (appearance별 스타일 충돌 방지)
-    const uniqueId = useId().replace(/:/g, "");
-    const scrollbarClassName = `lsr-scrollbar-${uniqueId}`;
+    const containerRef = useRef<HTMLDivElement>(null);
 
-    // Scrollbar appearance 값 추출 (defaults 적용)
+    // 고유한 scrollbar 테마 클래스명 생성 (인스턴스별 스타일 충돌 방지)
+    const uniqueId = useId().replace(/:/g, "");
+    const themeClassName = `os-theme-lsr-${uniqueId}`;
+
+    // Scrollbar appearance 값 추출
     const scrollbar = appearance?.scrollbar;
-    const scrollbarWidth = scrollbar?.width ?? DEFAULT_SCROLLBAR_APPEARANCE.width;
-    const scrollbarHeight = scrollbar?.height ?? DEFAULT_SCROLLBAR_APPEARANCE.height;
     const thumbColor = scrollbar?.thumbColor ?? DEFAULT_SCROLLBAR_APPEARANCE.thumbColor;
-    const thumbHoverColor = scrollbar?.thumbHoverColor ?? DEFAULT_SCROLLBAR_APPEARANCE.thumbHoverColor;
-    const thumbRadius = scrollbar?.thumbRadius ?? DEFAULT_SCROLLBAR_APPEARANCE.thumbRadius;
-    const trackColor = scrollbar?.trackColor ?? DEFAULT_SCROLLBAR_APPEARANCE.trackColor;
     const hidden = scrollbar?.hidden ?? DEFAULT_SCROLLBAR_APPEARANCE.hidden;
 
-    // WebKit scrollbar 스타일 주입 (appearance 변경 시 업데이트)
-    useEffect(() => {
-      const styleId = `lsr-style-${uniqueId}`;
+    // OverlayScrollbars 훅 초기화
+    const [initializeOS, osInstance] = useOverlayScrollbars({
+      options: {
+        overflow: { x: "scroll", y: "hidden" },
+        scrollbars: {
+          theme: themeClassName,
+          visibility: hidden ? "hidden" : "auto",
+          autoHide: "leave", // 마우스가 영역을 벗어나면 숨김 (가장 대중적인 UX)
+          autoHideDelay: 400,
+          dragScroll: true,
+          clickScroll: true,
+        },
+      },
+      defer: true,
+    });
 
-      // 기존 스타일 제거 후 재생성
+    // OverlayScrollbars 초기화
+    useEffect(() => {
+      if (containerRef.current) {
+        initializeOS(containerRef.current);
+      }
+    }, [initializeOS]);
+
+    // hidden 옵션 변경 시 업데이트
+    useEffect(() => {
+      const instance = osInstance();
+      if (instance) {
+        instance.options({
+          scrollbars: {
+            visibility: hidden ? "hidden" : "auto",
+          },
+        });
+      }
+    }, [osInstance, hidden]);
+
+    // OverlayScrollbars 테마 CSS 변수 주입 (thumbColor만 커스텀, 나머지는 고정값)
+    useEffect(() => {
+      const styleId = `lsr-os-theme-${uniqueId}`;
       document.getElementById(styleId)?.remove();
 
       const styleElement = document.createElement("style");
       styleElement.id = styleId;
-      styleElement.textContent = hidden
-        ? `
-          .${scrollbarClassName}::-webkit-scrollbar {
-            display: none;
-          }
-          .${scrollbarClassName} {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-          }
-        `
-        : `
-          .${scrollbarClassName}::-webkit-scrollbar {
-            width: ${scrollbarWidth}px;
-            height: ${scrollbarHeight}px;
-          }
-          .${scrollbarClassName}::-webkit-scrollbar-track {
-            background: ${trackColor};
-          }
-          .${scrollbarClassName}::-webkit-scrollbar-thumb {
-            background: ${thumbColor};
-            border-radius: ${thumbRadius}px;
-          }
-          .${scrollbarClassName}::-webkit-scrollbar-thumb:hover {
-            background: ${thumbHoverColor};
-          }
-        `;
+      styleElement.textContent = `
+        .${themeClassName} {
+          --os-size: 8px;
+          --os-padding-perpendicular: 2px;
+          --os-padding-axis: 2px;
+          --os-track-border-radius: 4px;
+          --os-track-bg: transparent;
+          --os-track-bg-hover: transparent;
+          --os-handle-border-radius: 4px;
+          --os-handle-bg: ${thumbColor};
+          --os-handle-bg-hover: ${thumbColor};
+          --os-handle-bg-active: ${thumbColor};
+          --os-handle-min-size: 30px;
+        }
+      `;
       document.head.appendChild(styleElement);
 
       return () => {
         document.getElementById(styleId)?.remove();
       };
-    }, [
-      uniqueId,
-      scrollbarClassName,
-      scrollbarWidth,
-      scrollbarHeight,
-      thumbColor,
-      thumbHoverColor,
-      thumbRadius,
-      trackColor,
-      hidden,
-    ]);
+    }, [uniqueId, themeClassName, thumbColor]);
 
-    // Firefox scrollbar 스타일 (inline style로 적용)
-    const firefoxScrollbarStyle: React.CSSProperties = hidden
-      ? { msOverflowStyle: "none", scrollbarWidth: "none" }
-      : { scrollbarWidth: "thin", scrollbarColor: `${thumbColor} ${trackColor}` };
-
-    // overflow 스타일 적용 (LiveStreamingRecorder는 가로 스크롤 사용)
-    const mergedClassName = `overflow-x-auto overflow-y-hidden ${scrollbarClassName} ${className}`;
+    // ref 포워딩
+    useEffect(() => {
+      if (ref) {
+        if (typeof ref === "function") {
+          ref(containerRef.current);
+        } else {
+          ref.current = containerRef.current;
+        }
+      }
+    }, [ref]);
 
     return (
-      <div ref={ref} className={mergedClassName} style={{ ...firefoxScrollbarStyle, ...style }} {...props}>
+      <div ref={containerRef} className={className} style={style} {...props}>
         <LiveStreamingRecorderProvider
           mediaRecorder={mediaRecorder}
           fftSize={fftSize}
@@ -262,13 +275,21 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
       // Don't draw anything if not recording and no data
     }, [amplitudes, isRecording, appearance, growWidth]);
 
-    // Track container size with ResizeObserver and get parent container reference
+    // Track container size with ResizeObserver and get OverlayScrollbars viewport reference
     useEffect(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
 
-      // Find scrollable parent container
-      containerRef.current = canvas.parentElement;
+      // OverlayScrollbars가 생성한 viewport 요소 찾기 (.os-viewport 클래스)
+      // 구조: Root > .os-viewport (실제 스크롤 컨테이너) > .os-content > canvas
+      const osContent = canvas.parentElement;
+      const osViewport = osContent?.parentElement;
+      if (osViewport?.classList.contains("os-viewport")) {
+        containerRef.current = osViewport;
+      } else {
+        // Fallback: OverlayScrollbars 초기화 전이거나 다른 구조일 경우
+        containerRef.current = canvas.parentElement;
+      }
 
       const resizeObserver = new ResizeObserver((entries) => {
         const entry = entries[0];

@@ -128,7 +128,7 @@ function AudioWaveformPlayer() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-white">Audio Waveform Player</h2>
-            <p className="text-sm text-slate-400">3-minute sample track</p>
+            <p className="text-sm text-slate-400">5-minute sample track</p>
           </div>
           <div className="flex items-center gap-2 text-slate-400">
             <Volume2 className="h-4 w-4" />

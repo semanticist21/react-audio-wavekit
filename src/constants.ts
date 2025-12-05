@@ -18,11 +18,6 @@ export const DEFAULT_PLAYHEAD_APPEARANCE = {
 } as const;
 
 export const DEFAULT_SCROLLBAR_APPEARANCE: Required<ScrollbarAppearance> = {
-  width: 8,
-  height: 8,
-  thumbColor: "rgba(148, 163, 184, 0.3)",
-  thumbHoverColor: "rgba(148, 163, 184, 0.5)",
-  thumbRadius: 4,
-  trackColor: "transparent",
+  thumbColor: "rgba(148, 163, 184, 0.5)",
   hidden: false,
 };
