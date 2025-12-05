@@ -78,7 +78,7 @@ export const LiveAudioVisualizer = forwardRef<LiveAudioVisualizerRef, LiveAudioV
 
       const canvas = canvasRef.current;
 
-      // CSS 변수에서 bar 스타일 읽기 (한 번만 실행)
+      // Read bar styles from CSS variables (once)
       const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas);
 
       const ctx = canvas.getContext("2d");
@@ -115,7 +115,7 @@ export const LiveAudioVisualizer = forwardRef<LiveAudioVisualizerRef, LiveAudioV
         const totalBarWidth = barWidth + gap;
         const numBars = Math.floor(width / totalBarWidth);
 
-        // Bar 색상 설정 (클로저로 캡처된 값 사용)
+        // Set bar color (Use captured value from closure)
         ctx.fillStyle = barColor;
 
         // Draw bars

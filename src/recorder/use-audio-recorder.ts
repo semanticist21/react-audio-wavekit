@@ -60,12 +60,12 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
   const timerRef = useRef<number | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // useCallback 안정성을 위한 ref (최신 state 값 추적)
+  // useCallback ref for stability (latest state value tracking)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const isRecordingRef = useRef(false);
   const isPausedRef = useRef(false);
 
-  // State를 ref와 동기화
+  // Stateto refsync with
   useEffect(() => {
     mediaRecorderRef.current = mediaRecorder;
     isRecordingRef.current = isRecording;
@@ -150,14 +150,14 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
   }, [mimeType, audioConstraints, onRecordingComplete]);
 
   const stopRecording = useCallback(() => {
-    // ref를 사용해 최신 값 참조 (의존성 배열 안정화)
+    // refto reference latest values (Stabilize dependency array)
     if (mediaRecorderRef.current && isRecordingRef.current) {
       mediaRecorderRef.current.stop();
     }
   }, []);
 
   const pauseRecording = useCallback(() => {
-    // ref를 사용해 최신 값 참조 (의존성 배열 안정화)
+    // refto reference latest values (Stabilize dependency array)
     if (mediaRecorderRef.current && isRecordingRef.current && !isPausedRef.current) {
       mediaRecorderRef.current.pause();
       setIsPaused(true);
@@ -165,7 +165,7 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
   }, []);
 
   const resumeRecording = useCallback(() => {
-    // ref를 사용해 최신 값 참조 (의존성 배열 안정화)
+    // refto reference latest values (Stabilize dependency array)
     if (mediaRecorderRef.current && isRecordingRef.current && isPausedRef.current) {
       mediaRecorderRef.current.resume();
       setIsPaused(false);
@@ -173,7 +173,7 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
   }, []);
 
   const clearRecording = useCallback(() => {
-    // ref를 사용해 최신 값 참조 (의존성 배열 안정화)
+    // refto reference latest values (Stabilize dependency array)
     if (mediaRecorderRef.current && isRecordingRef.current) {
       mediaRecorderRef.current.stop();
     }

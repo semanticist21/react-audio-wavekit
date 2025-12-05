@@ -116,7 +116,7 @@ export const RecordingWaveform = forwardRef<RecordingWaveformRef, RecordingWavef
       const canvas = canvasRef.current;
       const container = containerRef.current;
 
-      // CSS 변수에서 bar 스타일 읽기 (한 번만 실행)
+      // Read bar styles from CSS variables (once)
       const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas);
 
       // Reset amplitude data when starting new recording
@@ -171,7 +171,7 @@ export const RecordingWaveform = forwardRef<RecordingWaveformRef, RecordingWavef
         // Clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Bar 색상 설정 (클로저로 캡처된 값 사용)
+        // Set bar color (Use captured value from closure)
         ctx.fillStyle = barColor;
 
         // Draw bars from amplitude data
@@ -248,7 +248,7 @@ export const RecordingWaveform = forwardRef<RecordingWaveformRef, RecordingWavef
         const containerHeight = container.clientHeight;
         const containerWidth = container.clientWidth;
 
-        // CSS 변수에서 bar 스타일 읽기
+        // Read bar styles from CSS variables
         const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas);
 
         const amplitudeData = amplitudeDataRef.current;

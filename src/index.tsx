@@ -1,16 +1,61 @@
-// Waveform 정적 시각화 컴포넌트
+// ============================================================================
+// Compound Components (New Headless API)
+// ============================================================================
 
-export type { LiveAudioVisualizerProps, LiveAudioVisualizerRef } from "./recorder/live-visualizer/index.js";
-// 라이브 오디오 시각화 컴포넌트
-export { LiveAudioVisualizer } from "./recorder/live-visualizer/index.js";
-export type { RecordingWaveformProps, RecordingWaveformRef } from "./recorder/recording-waveform/index.js";
-// 녹음 파형 컴포넌트
-export { RecordingWaveform } from "./recorder/recording-waveform/index.js";
+export type {
+  LiveVisualizerCanvasProps,
+  LiveVisualizerRootProps,
+} from "./recorder/live-visualizer-compound.js";
+// LiveVisualizer - Real-time audio visualization
+export { LiveVisualizer } from "./recorder/live-visualizer-compound.js";
+export type {
+  RecordingWaveformCanvasProps,
+  RecordingWaveformRootProps,
+  RecordingWaveformScrollContainerProps,
+} from "./recorder/recording-waveform-compound.js";
+// RecordingWaveform - Timeline-based waveform
+export { RecordingWaveform } from "./recorder/recording-waveform-compound.js";
+export type {
+  AudioWaveformCanvasProps,
+  AudioWaveformContainerProps,
+  AudioWaveformRootProps,
+} from "./waveform/audio-waveform-compound.js";
+// AudioWaveform - Static waveform visualization
+export { AudioWaveform } from "./waveform/audio-waveform-compound.js";
+
+// ============================================================================
+// Headless Hooks
+// ============================================================================
+
 export type { UseAudioAnalyserConfig, UseAudioAnalyserReturn } from "./recorder/use-audio-analyser.js";
-// 내부적으로 사용되는 오디오 분석 훅 (고급 사용자용)
+// Audio analyser hook (advanced usage)
 export { useAudioAnalyser } from "./recorder/use-audio-analyser.js";
 export type { UseAudioRecorderConfig, UseAudioRecorderReturn } from "./recorder/use-audio-recorder.js";
-// 오디오 녹음 훅
+// Audio recorder hook
 export { useAudioRecorder } from "./recorder/use-audio-recorder.js";
+export type { UseLiveAudioDataOptions, UseLiveAudioDataReturn } from "./recorder/use-live-audio-data.js";
+// Live audio data extraction
+export { useLiveAudioData } from "./recorder/use-live-audio-data.js";
+export type {
+  UseRecordingAmplitudesOptions,
+  UseRecordingAmplitudesReturn,
+} from "./recorder/use-recording-amplitudes.js";
+// Recording amplitudes extraction
+export { useRecordingAmplitudes } from "./recorder/use-recording-amplitudes.js";
+export type { UseAudioWaveformOptions, UseAudioWaveformReturn } from "./waveform/use-audio-waveform.js";
+// Waveform data extraction
+export { useAudioWaveform } from "./waveform/use-audio-waveform.js";
+
+// ============================================================================
+// Legacy Components (Deprecated - use Compound Components instead)
+// ============================================================================
+
+export type { LiveAudioVisualizerProps, LiveAudioVisualizerRef } from "./recorder/live-visualizer/index.js";
+// @deprecated Use LiveVisualizer compound components instead
+export { LiveAudioVisualizer } from "./recorder/live-visualizer/index.js";
+export type { RecordingWaveformProps, RecordingWaveformRef } from "./recorder/recording-waveform/index.js";
+// @deprecated Use RecordingWaveform compound components instead
+export { RecordingWaveform as RecordingWaveformLegacy } from "./recorder/recording-waveform/index.js";
 export type { AudioWaveformProps, AudioWaveformRef } from "./waveform/index.js";
-export { AudioVisualizer, AudioWaveform } from "./waveform/index.js";
+// @deprecated Use AudioWaveform compound components instead
+export { AudioVisualizer, AudioWaveform as AudioWaveformLegacy } from "./waveform/index.js";

@@ -8,7 +8,7 @@ export interface CanvasBarStyles {
   gap: number;
   /** Bar의 border radius (픽셀) */
   barRadius: number;
-  /** Bar의 색상 (CSS color 값) */
+  /** Bar의 color (CSS color 값) */
   barColor: string;
 }
 

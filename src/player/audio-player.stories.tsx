@@ -1,20 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { RecordingWaveform } from "../recorder/recording-waveform";
+import { RecordingWaveform } from "../recorder/recording-waveform-compound";
 import { useAudioRecorder } from "../recorder/use-audio-recorder";
 import rawSource from "./audio-player.stories.tsx?raw";
 
 function AudioPlayer() {
-  const {
-    startRecording,
-    stopRecording,
-    pauseRecording,
-    resumeRecording,
-    mediaRecorder,
-    isRecording,
-    isPaused,
-  } = useAudioRecorder();
+  const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
+    useAudioRecorder();
 
-  // 녹음 시작/일시정지/재개 버튼 핸들러
+  // Recording start/pause/resume button handler
   const handleRecordClick = () => {
     if (!isRecording) {
       startRecording();
@@ -28,20 +21,20 @@ function AudioPlayer() {
   return (
     <div className="flex h-screen w-full items-center justify-center bg-slate-100">
       <div className="flex h-24 w-fit items-center gap-4 rounded-2xl bg-white px-5 shadow-lg">
-        {/* 녹음/일시정지 버튼 */}
+        {/* Record/pause button */}
         <button
           type="button"
           onClick={handleRecordClick}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-md"
         >
           {!isRecording ? (
-            // 녹음 시작: 빨간 원
+            // Start recording: red circle
             <div className="h-4 w-4 rounded-full bg-red-500" />
           ) : isPaused ? (
-            // 일시정지 상태에서 재개: 빨간 원
+            // Resume from pause: red circle
             <div className="h-4 w-4 rounded-full bg-red-500" />
           ) : (
-            // 녹음 중 일시정지: 두 개의 세로 막대
+            // Pause during recording: two vertical bars
             <div className="flex gap-0.5">
               <div className="h-4 w-1 rounded-sm bg-orange-500" />
               <div className="h-4 w-1 rounded-sm bg-orange-500" />
@@ -49,13 +42,14 @@ function AudioPlayer() {
           )}
         </button>
 
-        {/* 파형 표시 영역 */}
-        <RecordingWaveform
-          mediaRecorder={mediaRecorder}
-          className="h-12 w-72 rounded-lg bg-slate-100 text-slate-400 [scrollbar-width:thin]"
-        />
+        {/* Waveform display area */}
+        <RecordingWaveform.Root mediaRecorder={mediaRecorder}>
+          <RecordingWaveform.ScrollContainer className="h-12 w-72 rounded-lg bg-slate-100 [scrollbar-width:thin]">
+            <RecordingWaveform.Canvas className="text-slate-400" />
+          </RecordingWaveform.ScrollContainer>
+        </RecordingWaveform.Root>
 
-        {/* 정지 버튼 */}
+        {/* Stop button */}
         <button
           type="button"
           onClick={stopRecording}
