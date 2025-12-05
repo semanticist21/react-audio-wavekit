@@ -245,6 +245,150 @@ export default meta;
 
 type Story = StoryObj<typeof LiveStreamingRecorderPlayer>;
 
+// Playground 스토리용 확장 타입 (waveform + scrollbar + analyser 옵션)
+interface PlaygroundArgs {
+  // Waveform appearance
+  barColor: string;
+  barWidth: number;
+  barGap: number;
+  barRadius: number;
+  barRadiusFull: boolean;
+  barHeightScale: number;
+  // Scrollbar appearance
+  scrollbarThumbColor: string;
+  scrollbarHidden: boolean;
+  // Analyser options
+  fftSize: number;
+  smoothingTimeConstant: number;
+  sampleInterval: number;
+}
+
+// Playground 스토리: Controls 패널에서 appearance 속성 조정 가능
+export const Playground: StoryObj<PlaygroundArgs> = {
+  render: (args) => {
+    const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
+      useAudioRecorder();
+
+    const handleRecordClick = () => {
+      if (!isRecording) {
+        startRecording();
+      } else if (isPaused) {
+        resumeRecording();
+      } else {
+        pauseRecording();
+      }
+    };
+
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-slate-100">
+        <div className="flex h-24 w-fit items-center gap-4 rounded-2xl bg-white px-5 shadow-lg">
+          <button
+            type="button"
+            onClick={handleRecordClick}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-md"
+          >
+            {!isRecording ? (
+              <div className="h-4 w-4 rounded-full bg-red-500" />
+            ) : isPaused ? (
+              <div className="h-4 w-4 rounded-full bg-red-500" />
+            ) : (
+              <div className="flex gap-0.5">
+                <div className="h-4 w-1 rounded-sm bg-orange-500" />
+                <div className="h-4 w-1 rounded-sm bg-orange-500" />
+              </div>
+            )}
+          </button>
+
+          <LiveStreamingRecorder.Root
+            mediaRecorder={mediaRecorder}
+            className="h-12 w-72 rounded-sm bg-slate-100"
+            fftSize={args.fftSize}
+            smoothingTimeConstant={args.smoothingTimeConstant}
+            sampleInterval={args.sampleInterval}
+            appearance={{
+              scrollbar: {
+                thumbColor: args.scrollbarThumbColor,
+                hidden: args.scrollbarHidden,
+              },
+            }}
+          >
+            <LiveStreamingRecorder.Canvas
+              appearance={{
+                barColor: args.barColor,
+                barWidth: args.barWidth,
+                barGap: args.barGap,
+                barRadius: args.barRadiusFull ? args.barWidth / 2 : args.barRadius,
+                barHeightScale: args.barHeightScale,
+              }}
+            />
+          </LiveStreamingRecorder.Root>
+
+          <button
+            type="button"
+            onClick={stopRecording}
+            disabled={!isRecording}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-md disabled:opacity-40"
+          >
+            <div className="h-3.5 w-3.5 rounded-sm bg-slate-700" />
+          </button>
+        </div>
+      </div>
+    );
+  },
+  args: {
+    // Waveform
+    barColor: "#3b82f6",
+    barWidth: 3,
+    barGap: 2,
+    barRadius: 1.5,
+    barRadiusFull: false,
+    barHeightScale: 0.95,
+    // Scrollbar
+    scrollbarThumbColor: "rgba(148, 163, 184, 0.5)",
+    scrollbarHidden: false,
+    // Analyser
+    fftSize: 2048,
+    smoothingTimeConstant: 0.8,
+    sampleInterval: 50,
+  },
+  argTypes: {
+    // Waveform
+    barColor: { control: "color", description: "Bar color (CSS color)" },
+    barWidth: { control: { type: "range", min: 1, max: 10, step: 0.5 }, description: "Bar width (px)" },
+    barGap: { control: { type: "range", min: 0, max: 10, step: 0.5 }, description: "Gap between bars (px)" },
+    barRadius: {
+      control: { type: "range", min: 0, max: 10, step: 0.5 },
+      description: "Bar corner radius (px)",
+      if: { arg: "barRadiusFull", eq: false },
+    },
+    barRadiusFull: { control: "boolean", description: "Fully rounded bars (pill shape)" },
+    barHeightScale: {
+      control: { type: "range", min: 0.1, max: 1, step: 0.05 },
+      description: "Bar height scale (0.0-1.0)",
+    },
+    // Scrollbar
+    scrollbarThumbColor: { control: "color", description: "Scrollbar thumb color" },
+    scrollbarHidden: { control: "boolean", description: "Hide scrollbar" },
+    // Analyser
+    fftSize: {
+      control: { type: "select" },
+      options: [256, 512, 1024, 2048, 4096],
+      description: "FFT size (higher = more detail, more CPU)",
+    },
+    smoothingTimeConstant: {
+      control: { type: "range", min: 0, max: 1, step: 0.05 },
+      description: "Smoothing (0 = no smoothing, 1 = max)",
+    },
+    sampleInterval: {
+      control: { type: "range", min: 10, max: 200, step: 10 },
+      description: "Sample interval in ms (lower = more bars)",
+    },
+  },
+  parameters: {
+    layout: "fullscreen",
+  },
+};
+
 export const Default: Story = {
   parameters: {
     docs: {

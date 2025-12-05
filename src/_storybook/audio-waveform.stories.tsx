@@ -221,6 +221,128 @@ export default meta;
 
 type Story = StoryObj<typeof AudioWaveformPlayer>;
 
+// Playground 스토리용 확장 타입
+interface PlaygroundArgs {
+  barColor: string;
+  barWidth: number;
+  barGap: number;
+  barRadius: number;
+  barRadiusFull: boolean;
+  barHeightScale: number;
+  playheadColor: string;
+  playheadWidth: number;
+}
+
+// Playground 스토리: Controls 패널에서 appearance 속성 조정 가능
+export const Playground: StoryObj<PlaygroundArgs> = {
+  render: (args) => {
+    const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+    const [audioUrl, setAudioUrl] = useState<string>("");
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+    const audioRef = useRef<HTMLAudioElement>(null);
+    const audioUrlRef = useRef<string>("");
+
+    useEffect(() => {
+      fetch("/sample-5min.mp3")
+        .then((res) => res.blob())
+        .then((blob) => {
+          setAudioBlob(blob);
+          const url = URL.createObjectURL(blob);
+          audioUrlRef.current = url;
+          setAudioUrl(url);
+        })
+        .catch(console.error);
+
+      return () => {
+        if (audioUrlRef.current) {
+          URL.revokeObjectURL(audioUrlRef.current);
+        }
+      };
+    }, []);
+
+    useEffect(() => {
+      const audio = audioRef.current;
+      if (!audio || !audioUrl) return;
+
+      const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
+      const handleDurationChange = () => setDuration(audio.duration);
+
+      audio.addEventListener("timeupdate", handleTimeUpdate);
+      audio.addEventListener("durationchange", handleDurationChange);
+
+      if (audio.duration) setDuration(audio.duration);
+
+      return () => {
+        audio.removeEventListener("timeupdate", handleTimeUpdate);
+        audio.removeEventListener("durationchange", handleDurationChange);
+      };
+    }, [audioUrl]);
+
+    const handleSeek = (time: number) => {
+      if (audioRef.current) audioRef.current.currentTime = time;
+    };
+
+    if (!audioBlob) return <p className="p-4 text-slate-400">Loading...</p>;
+
+    return (
+      <div className="flex flex-col gap-4 p-8">
+        <AudioWaveform
+          blob={audioBlob}
+          className="h-32 w-full rounded-xl bg-slate-900 p-4"
+          currentTime={currentTime}
+          duration={duration}
+          onSeek={handleSeek}
+          appearance={{
+            barColor: args.barColor,
+            barWidth: args.barWidth,
+            barGap: args.barGap,
+            // barRadiusFull이 true면 barWidth의 절반으로 설정 (완전 원형)
+            barRadius: args.barRadiusFull ? args.barWidth / 2 : args.barRadius,
+            barHeightScale: args.barHeightScale,
+            playheadColor: args.playheadColor,
+            playheadWidth: args.playheadWidth,
+          }}
+        />
+        {audioUrl && (
+          // biome-ignore lint/a11y/useMediaCaption: Demo audio
+          <audio ref={audioRef} src={audioUrl} controls className="w-full" />
+        )}
+      </div>
+    );
+  },
+  args: {
+    barColor: "#3b82f6",
+    barWidth: 1,
+    barGap: 1.5,
+    barRadius: 2,
+    barRadiusFull: false,
+    barHeightScale: 0.95,
+    playheadColor: "#ef4444",
+    playheadWidth: 3,
+  },
+  argTypes: {
+    barColor: { control: "color", description: "Bar color (CSS color)" },
+    barWidth: { control: { type: "range", min: 1, max: 10, step: 0.5 }, description: "Bar width (px)" },
+    barGap: { control: { type: "range", min: 0, max: 10, step: 0.5 }, description: "Gap between bars (px)" },
+    barRadius: {
+      control: { type: "range", min: 0, max: 10, step: 0.5 },
+      description: "Bar corner radius (px)",
+      if: { arg: "barRadiusFull", eq: false },
+    },
+    barRadiusFull: { control: "boolean", description: "Fully rounded bars (pill shape)" },
+    barHeightScale: {
+      control: { type: "range", min: 0.1, max: 1, step: 0.05 },
+      description: "Bar height scale (0.0-1.0)",
+    },
+    playheadColor: { control: "color", description: "Playhead color (CSS color)" },
+    playheadWidth: { control: { type: "range", min: 1, max: 10, step: 1 }, description: "Playhead width (px)" },
+  },
+  parameters: {
+    layout: "fullscreen",
+  },
+};
+
 export const Simple: Story = {
   render: () => {
     const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
