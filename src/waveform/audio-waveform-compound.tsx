@@ -1,6 +1,7 @@
 import { forwardRef, type HTMLAttributes, type ReactNode, useCallback, useEffect, useRef } from "react";
 import { AudioWaveformProvider, useAudioWaveformContext } from "./audio-waveform-context";
 import type { UseAudioWaveformOptions } from "./use-audio-waveform";
+import type { BarStyle } from "./util-canvas";
 
 // ============================================================================
 // AudioWaveform.Root
@@ -47,18 +48,16 @@ const AudioWaveformContainer = forwardRef<HTMLDivElement, AudioWaveformContainer
 export interface AudioWaveformCanvasProps extends HTMLAttributes<HTMLCanvasElement> {
   /** Additional className for canvas element */
   className?: string;
-  /** Inline styles including CSS custom properties */
-  style?: React.CSSProperties & {
-    "--bar-width"?: string | number;
-    "--bar-gap"?: string | number;
-    "--bar-radius"?: string | number;
-  };
+  /** Inline styles for canvas element */
+  style?: React.CSSProperties;
   /** Bar height scale (0.0 - 1.0). Controls maximum bar height relative to container (default: 0.9) */
   barHeightScale?: number;
+  /** Bar 스타일 (width, gap, radius) */
+  barStyle?: BarStyle;
 }
 
 const AudioWaveformCanvas = forwardRef<HTMLCanvasElement, AudioWaveformCanvasProps>(function AudioWaveformCanvas(
-  { className = "", style, barHeightScale = 0.9, ...props },
+  { className = "", style, barHeightScale = 0.9, barStyle, ...props },
   ref
 ) {
   const { peaks } = useAudioWaveformContext();
@@ -99,17 +98,25 @@ const AudioWaveformCanvas = forwardRef<HTMLCanvasElement, AudioWaveformCanvasPro
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
-    // Read bar styles from CSS variables (with fallback defaults)
-    const styles = getComputedStyle(canvas);
-    const barWidth = Number.parseFloat(styles.getPropertyValue("--bar-width")) || 3;
-    const gap = Number.parseFloat(styles.getPropertyValue("--bar-gap")) || 1;
-    const barRadius = Number.parseFloat(styles.getPropertyValue("--bar-radius")) || 1.5;
+    // Read bar styles from barStyle prop (기본값: width=3, gap=1, radius=1.5)
+    const barWidth = barStyle?.width
+      ? typeof barStyle.width === "number"
+        ? barStyle.width
+        : Number.parseFloat(barStyle.width)
+      : 3;
+    const gap = barStyle?.gap ? (typeof barStyle.gap === "number" ? barStyle.gap : Number.parseFloat(barStyle.gap)) : 1;
+    const barRadius = barStyle?.radius
+      ? typeof barStyle.radius === "number"
+        ? barStyle.radius
+        : Number.parseFloat(barStyle.radius)
+      : 1.5;
 
     const totalBarWidth = barWidth + gap;
     const barsCount = Math.floor(width / totalBarWidth);
     const step = peaks.length / barsCount;
 
-    // Bar color (text-inheritto inherit Tailwind color)
+    // Bar color (text-inherit to inherit Tailwind color)
+    const styles = getComputedStyle(canvas);
     ctx.fillStyle = styles.color || "#3b82f6";
 
     // Render bars
@@ -129,7 +136,7 @@ const AudioWaveformCanvas = forwardRef<HTMLCanvasElement, AudioWaveformCanvasPro
         ctx.fillRect(x, y, barWidth, barHeight);
       }
     }
-  }, [peaks, barHeightScale]);
+  }, [peaks, barHeightScale, barStyle]);
 
   // Track canvas size with ResizeObserver
   useEffect(() => {

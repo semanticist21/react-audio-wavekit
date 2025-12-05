@@ -1,5 +1,5 @@
 import { forwardRef, type HTMLAttributes, type ReactNode, useEffect, useRef } from "react";
-import { getCanvasBarStyles } from "../../waveform/util-canvas";
+import { type BarStyle, getCanvasBarStyles } from "../../waveform/util-canvas";
 import { LiveVisualizerProvider, useLiveVisualizerContext } from "./context";
 import type { UseLiveAudioDataOptions } from "./use-live-audio-data";
 
@@ -29,18 +29,16 @@ const LiveVisualizerRoot = forwardRef<HTMLDivElement, LiveVisualizerRootProps>(f
 export interface LiveVisualizerCanvasProps extends HTMLAttributes<HTMLCanvasElement> {
   /** Additional className for canvas element */
   className?: string;
-  /** Inline styles including CSS custom properties */
-  style?: React.CSSProperties & {
-    "--bar-width"?: string | number;
-    "--bar-gap"?: string | number;
-    "--bar-radius"?: string | number;
-  };
+  /** Inline styles for canvas element */
+  style?: React.CSSProperties;
   /** Bar height scale (0.0 - 1.0). Default 0.9 leaves 10% vertical padding */
   barHeightScale?: number;
+  /** Bar 스타일 (width, gap, radius) */
+  barStyle?: BarStyle;
 }
 
 const LiveVisualizerCanvas = forwardRef<HTMLCanvasElement, LiveVisualizerCanvasProps>(function LiveVisualizerCanvas(
-  { className = "", style, barHeightScale = 0.9, ...props },
+  { className = "", style, barHeightScale = 0.9, barStyle, ...props },
   ref
 ) {
   const { frequencies, isRecording, isPaused } = useLiveVisualizerContext();
@@ -63,8 +61,8 @@ const LiveVisualizerCanvas = forwardRef<HTMLCanvasElement, LiveVisualizerCanvasP
     const canvas = canvasRef.current;
     if (!canvas || frequencies.length === 0) return;
 
-    // Read bar styles from CSS variables (once)
-    const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas);
+    // Read bar styles from barStyle prop or CSS variables (once)
+    const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas, barStyle);
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
@@ -118,7 +116,7 @@ const LiveVisualizerCanvas = forwardRef<HTMLCanvasElement, LiveVisualizerCanvasP
         animationRef.current = null;
       }
     };
-  }, [frequencies, isPaused, barHeightScale]);
+  }, [frequencies, isPaused, barHeightScale, barStyle]);
 
   return (
     <>

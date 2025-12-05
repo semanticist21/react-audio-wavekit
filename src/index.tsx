@@ -22,6 +22,7 @@ export type {
 } from "./waveform/audio-waveform-compound.js";
 // AudioWaveform - Static waveform visualization
 export { AudioWaveform } from "./waveform/audio-waveform-compound.js";
+export type { BarStyle } from "./waveform/util-canvas.js";
 
 // ============================================================================
 // Headless Hooks

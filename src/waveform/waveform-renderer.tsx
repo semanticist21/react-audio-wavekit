@@ -1,4 +1,5 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from "react";
+import type { BarStyle } from "./util-canvas";
 
 // ============================================================================
 // Common Waveform Renderer (A)
@@ -9,12 +10,10 @@ export interface WaveformRendererProps {
   peaks: number[] | null;
   /** Additional class name for the canvas */
   className?: string;
-  /** Inline styles for the canvas (supports CSS variables for bar customization) */
-  style?: React.CSSProperties & {
-    "--bar-width"?: string | number;
-    "--bar-gap"?: string | number;
-    "--bar-radius"?: string | number;
-  };
+  /** Inline styles for the canvas */
+  style?: React.CSSProperties;
+  /** Bar 스타일 (width, gap, radius) */
+  barStyle?: BarStyle;
 }
 
 export interface WaveformRendererRef {
@@ -22,7 +21,7 @@ export interface WaveformRendererRef {
 }
 
 export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRendererProps>(function WaveformRenderer(
-  { peaks, className = "", style },
+  { peaks, className = "", style, barStyle },
   ref
 ) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -54,16 +53,24 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
-    // Read CSS variables with fallback defaults
-    const styles = getComputedStyle(canvas);
-    const barWidth = parseFloat(styles.getPropertyValue("--bar-width")) || 3;
-    const gap = parseFloat(styles.getPropertyValue("--bar-gap")) || 1;
-    const barRadius = parseFloat(styles.getPropertyValue("--bar-radius")) || 1;
+    // Read bar styles from barStyle prop (기본값: width=3, gap=1, radius=1.5)
+    const barWidth = barStyle?.width
+      ? typeof barStyle.width === "number"
+        ? barStyle.width
+        : Number.parseFloat(barStyle.width)
+      : 3;
+    const gap = barStyle?.gap ? (typeof barStyle.gap === "number" ? barStyle.gap : Number.parseFloat(barStyle.gap)) : 1;
+    const barRadius = barStyle?.radius
+      ? typeof barStyle.radius === "number"
+        ? barStyle.radius
+        : Number.parseFloat(barStyle.radius)
+      : 1.5;
 
     const totalBarWidth = barWidth + gap;
     const barsCount = Math.floor(width / totalBarWidth);
     const step = peaks.length / barsCount;
 
+    const styles = getComputedStyle(canvas);
     ctx.fillStyle = styles.color || "#3b82f6";
 
     for (let i = 0; i < barsCount; i++) {
@@ -81,7 +88,7 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
         ctx.fillRect(x, y, barWidth, barHeight);
       }
     }
-  }, [peaks]);
+  }, [peaks, barStyle]);
 
   // ResizeObserver with RAF throttling
   useEffect(() => {

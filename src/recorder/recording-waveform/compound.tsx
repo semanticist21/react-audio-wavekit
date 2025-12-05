@@ -1,5 +1,5 @@
 import { forwardRef, type HTMLAttributes, type ReactNode, useEffect, useRef } from "react";
-import { getCanvasBarStyles } from "../../waveform/util-canvas";
+import { type BarStyle, getCanvasBarStyles } from "../../waveform/util-canvas";
 import { RecordingWaveformProvider, useRecordingWaveformContext } from "./context";
 import type { UseRecordingAmplitudesOptions } from "./use-recording-amplitudes";
 
@@ -78,18 +78,16 @@ const RecordingWaveformScrollContainer = forwardRef<HTMLDivElement, RecordingWav
 export interface RecordingWaveformCanvasProps extends HTMLAttributes<HTMLCanvasElement> {
   /** Additional className for canvas element */
   className?: string;
-  /** Inline styles including CSS custom properties */
-  style?: React.CSSProperties & {
-    "--bar-width"?: string | number;
-    "--bar-gap"?: string | number;
-    "--bar-radius"?: string | number;
-  };
+  /** Inline styles for canvas element */
+  style?: React.CSSProperties;
   /** Bar height scale (0.0 - 1.0). Default 0.9 leaves 10% vertical padding */
   barHeightScale?: number;
+  /** Bar 스타일 (width, gap, radius) */
+  barStyle?: BarStyle;
 }
 
 const RecordingWaveformCanvas = forwardRef<HTMLCanvasElement, RecordingWaveformCanvasProps>(
-  function RecordingWaveformCanvas({ className = "", style, barHeightScale = 0.9, ...props }, ref) {
+  function RecordingWaveformCanvas({ className = "", style, barHeightScale = 0.9, barStyle, ...props }, ref) {
     const { amplitudes, isRecording } = useRecordingWaveformContext();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -129,8 +127,8 @@ const RecordingWaveformCanvas = forwardRef<HTMLCanvasElement, RecordingWaveformC
       const container = containerRef.current;
       if (!canvas || !container || !isRecording) return;
 
-      // Read bar styles from CSS variables (once)
-      const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas);
+      // Read bar styles from barStyle prop or CSS variables (once)
+      const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas, barStyle);
 
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
@@ -191,7 +189,7 @@ const RecordingWaveformCanvas = forwardRef<HTMLCanvasElement, RecordingWaveformC
           animationRef.current = null;
         }
       };
-    }, [amplitudes, isRecording, barHeightScale]);
+    }, [amplitudes, isRecording, barHeightScale, barStyle]);
 
     // Render stopped state (when not recording)
     useEffect(() => {
@@ -206,8 +204,8 @@ const RecordingWaveformCanvas = forwardRef<HTMLCanvasElement, RecordingWaveformC
       const containerHeight = container.clientHeight;
       const containerWidth = container.clientWidth;
 
-      // Read bar styles from CSS variables
-      const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas);
+      // Read bar styles from barStyle prop or CSS variables
+      const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas, barStyle);
       const totalBarWidth = barWidth + gap;
 
       // Render recorded data if available
@@ -258,7 +256,7 @@ const RecordingWaveformCanvas = forwardRef<HTMLCanvasElement, RecordingWaveformC
           ctx.fill();
         }
       }
-    }, [amplitudes, isRecording, barHeightScale]);
+    }, [amplitudes, isRecording, barHeightScale, barStyle]);
 
     return (
       <>
