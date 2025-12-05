@@ -101,10 +101,7 @@ Scrolling timeline waveform (Voice Memos style). Canvas grows horizontally as re
   className="h-12 w-80 rounded bg-slate-100"
   appearance={{ scrollbar: { thumbColor: "#94a3b8" } }}
 >
-  <LiveStreamingRecorder.Canvas
-    appearance={{ barColor: "#3b82f6", barWidth: 2, barGap: 1 }}
-    growWidth={true}
-  />
+  <LiveStreamingRecorder.Canvas appearance={{ barColor: "#3b82f6", barWidth: 2, barGap: 1 }} />
 </LiveStreamingRecorder.Root>
 ```
 
@@ -122,7 +119,6 @@ Scrolling timeline waveform (Voice Memos style). Canvas grows horizontally as re
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `growWidth` | `boolean` | `true` | Canvas grows horizontally (enables scrolling) |
 | `appearance` | `WaveformAppearance` | - | See [Appearance Options](#appearance-options) |
 
 ### LiveStreamingStackRecorder

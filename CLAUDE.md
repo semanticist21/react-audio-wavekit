@@ -241,7 +241,7 @@ function StackRecorderExample() {
   - `DEFAULT_PLAYHEAD_APPEARANCE`: playheadColor="#ef4444", playheadWidth=2
 - **Audio Decoding:** Web Audio API (`AudioContext.decodeAudioData`) for blob processing
 - **Device Pixel Ratio:** Automatic DPR support for sharp canvas rendering on retina displays
-- **Growing Canvas Width:** `LiveStreamingRecorder.Canvas` supports `growWidth` prop - when true, canvas grows horizontally as recording continues (Voice Memos style with scrolling)
+- **Scrolling vs Fixed Width:** `LiveStreamingRecorder`는 스크롤 방식 (Voice Memos 스타일), `LiveStreamingStackRecorder`는 고정 너비 방식 (바가 압축됨)
 - **Playhead & Seek:** `AudioWaveform` supports playhead visualization and click-to-seek - pass `currentTime`, `duration`, and `onSeek` props. Uses `AudioWaveformAppearance` which extends `WaveformAppearance` with `playheadColor` and `playheadWidth`.
 
 ## Development Workflow

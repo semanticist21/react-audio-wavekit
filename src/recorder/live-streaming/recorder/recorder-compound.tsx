@@ -144,17 +144,10 @@ export interface LiveStreamingRecorderCanvasProps extends HTMLAttributes<HTMLCan
   style?: React.CSSProperties;
   /** Waveform appearance configuration (barColor, barWidth, etc.) - scrollbar 설정은 Root에서만 유효 */
   appearance?: LiveStreamingRecorderAppearance;
-  /**
-   * Allow canvas width to grow beyond container (enables scrolling)
-   * - true: Canvas grows horizontally as recording continues (Voice Memos style)
-   * - false: Canvas stays fixed width, bars get compressed
-   * @default true
-   */
-  growWidth?: boolean;
 }
 
 const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingRecorderCanvasProps>(
-  function LiveStreamingRecorderCanvas({ className = "", style, appearance, growWidth = true, ...props }, ref) {
+  function LiveStreamingRecorderCanvas({ className = "", style, appearance, ...props }, ref) {
     const { amplitudes, isRecording, isPaused } = useLiveStreamingRecorderContext();
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -209,24 +202,14 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
 
       // When recording or data exists
       if (isRecording || amplitudes.length > 0) {
-        // Calculate canvas width: different handling based on growWidth
-        let canvasWidth: number;
-        if (growWidth) {
-          // Canvas grows with data (enables scrolling)
-          // Calculate width based on amplitudes length for accurate width during pause/resume
-          const requiredWidth = amplitudes.length * totalBarWidth;
-          // Use containerWidth only as minimum (prevent too small when empty)
-          const calculatedWidth = amplitudes.length > 0 ? requiredWidth : containerWidth;
-          // In growWidth mode, canvas width never shrinks (pause/resume stability)
-          canvasWidth = Math.max(calculatedWidth, prevCanvasWidthRef.current);
-          prevCanvasWidthRef.current = canvasWidth;
-          // Set CSS layout size explicitly (enable scrolling)
-          canvas.style.width = `${canvasWidth}px`;
-        } else {
-          // Maintain fixed width (bars compress)
-          canvasWidth = containerWidth;
-          canvas.style.width = "100%";
-        }
+        // Canvas grows with data (enables scrolling, Voice Memos style)
+        // 녹음 데이터에 따라 캔버스 너비가 늘어남 → 스크롤 가능
+        const requiredWidth = amplitudes.length * totalBarWidth;
+        const calculatedWidth = amplitudes.length > 0 ? requiredWidth : containerWidth;
+        // 캔버스 너비는 절대 줄어들지 않음 (pause/resume 시 안정성 보장)
+        const canvasWidth = Math.max(calculatedWidth, prevCanvasWidthRef.current);
+        prevCanvasWidthRef.current = canvasWidth;
+        canvas.style.width = `${canvasWidth}px`;
 
         canvas.width = canvasWidth * dpr;
         canvas.height = containerHeight * dpr;
@@ -238,42 +221,24 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
         // Set bar color
         ctx.fillStyle = barColor;
 
-        // Draw bars from amplitude data (minimize draw calls with path batching)
+        // Draw bars - 1:1 매핑 (amplitude 하나당 bar 하나)
         const minBarHeight = 2;
         ctx.beginPath();
 
-        if (growWidth) {
-          // Scrolling mode: one bar per amplitude
-          for (let i = 0; i < amplitudes.length; i++) {
-            const amplitude = amplitudes[i];
-            const barHeight = Math.max(minBarHeight, amplitude * containerHeight * barHeightScale);
+        for (let i = 0; i < amplitudes.length; i++) {
+          const amplitude = amplitudes[i];
+          const barHeight = Math.max(minBarHeight, amplitude * containerHeight * barHeightScale);
 
-            const x = i * totalBarWidth;
-            const y = (containerHeight - barHeight) / 2;
+          const x = i * totalBarWidth;
+          const y = (containerHeight - barHeight) / 2;
 
-            ctx.roundRect(x, y, barWidth, barHeight, barRadius);
-          }
-        } else {
-          // Fixed width mode: compress amplitudes to fit canvas width
-          const barsCount = Math.floor(canvasWidth / totalBarWidth);
-          const step = amplitudes.length / barsCount;
-
-          for (let i = 0; i < barsCount; i++) {
-            const amplitudeIndex = Math.min(Math.floor(i * step), amplitudes.length - 1);
-            const amplitude = amplitudes[amplitudeIndex] || 0;
-            const barHeight = Math.max(minBarHeight, amplitude * containerHeight * barHeightScale);
-
-            const x = i * totalBarWidth;
-            const y = (containerHeight - barHeight) / 2;
-
-            ctx.roundRect(x, y, barWidth, barHeight, barRadius);
-          }
+          ctx.roundRect(x, y, barWidth, barHeight, barRadius);
         }
 
         ctx.fill();
       }
       // Don't draw anything if not recording and no data
-    }, [amplitudes, isRecording, appearance, growWidth]);
+    }, [amplitudes, isRecording, appearance]);
 
     // Track container size with ResizeObserver and get OverlayScrollbars viewport reference
     useEffect(() => {
@@ -315,7 +280,7 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
           drawWaveform();
 
           // Auto-scroll to right edge while recording
-          if (growWidth && containerRef.current) {
+          if (containerRef.current) {
             containerRef.current.scrollLeft = containerRef.current.scrollWidth;
           }
 
@@ -332,15 +297,14 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
       }
       // Draw once when stopped or paused (preserve waveform after recording ends)
       drawWaveform();
-    }, [isRecording, isPaused, drawWaveform, growWidth]);
+    }, [isRecording, isPaused, drawWaveform]);
 
     return (
       <canvas
         ref={canvasRef}
         className={className}
         style={{
-          // Set to block in growWidth mode to allow self-determined width
-          display: growWidth ? "block" : undefined,
+          display: "block",
           height: "100%",
           ...style,
         }}
