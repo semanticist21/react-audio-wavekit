@@ -35,10 +35,6 @@ Static waveform visualization with playhead and click-to-seek.
 
 [▶ Demo](https://react-audio-waveform.netlify.app/?path=/story/waveform-audiowaveform--default)
 
-### useAudioWaveform
-
-Headless hook to extract waveform amplitude data from audio blob.
-
 ---
 
 ## Recorder
@@ -72,14 +68,6 @@ Real-time frequency bars visualization.
 ### useAudioRecorder
 
 Headless hook to manage recording state with pause/resume support.
-
-### useLiveAudioData
-
-Headless hook to extract real-time frequency and volume data.
-
-### useRecordingAmplitudes
-
-Headless hook to extract timeline amplitude data during recording.
 
 ---
 
