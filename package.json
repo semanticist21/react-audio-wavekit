@@ -27,6 +27,8 @@
     "build": "vite build",
     "dev": "vite build --watch",
     "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "deploy-storybook": "storybook build && netlify deploy --dir=storybook-static --prod --site react-audio-waveform",
     "check": "biome check . && tsgo --noEmit",
     "fix": "biome check --write ."
   },
