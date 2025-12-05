@@ -35,6 +35,15 @@ Static waveform visualization with playhead and click-to-seek.
 
 [▶ Demo](https://react-audio-waveform.netlify.app/?path=/story/waveform-audiowaveform--default)
 
+```tsx
+<AudioWaveform
+  blob={audioBlob}
+  currentTime={currentTime}
+  duration={duration}
+  onSeek={(time) => (audioRef.current.currentTime = time)}
+/>
+```
+
 ---
 
 ## Recorder
@@ -55,6 +64,12 @@ Scrolling timeline waveform (Voice Memos style). Canvas grows horizontally as re
 
 [▶ Demo](https://react-audio-waveform.netlify.app/?path=/story/recorder-livestreamingrecorder--default)
 
+```tsx
+<LiveStreamingRecorder.Root mediaRecorder={mediaRecorder}>
+  <LiveStreamingRecorder.Canvas />
+</LiveStreamingRecorder.Root>
+```
+
 ### LiveStreamingStackRecorder
 
 ![LiveStreamingStackRecorder](https://react-audio-waveform.netlify.app/live-stream-stack.png)
@@ -63,6 +78,12 @@ Fixed-width waveform where bars compress as recording grows.
 
 [▶ Demo](https://react-audio-waveform.netlify.app/?path=/story/recorder-livestreamingstackrecorder--default)
 
+```tsx
+<LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder}>
+  <LiveStreamingStackRecorder.Canvas />
+</LiveStreamingStackRecorder.Root>
+```
+
 ### LiveRecorder
 
 ![LiveRecorder](https://react-audio-waveform.netlify.app/live-recorder.png)
@@ -70,6 +91,10 @@ Fixed-width waveform where bars compress as recording grows.
 Real-time frequency bars visualization.
 
 [▶ Demo](https://react-audio-waveform.netlify.app/?path=/story/recorder-liverecorder--default)
+
+```tsx
+<LiveRecorder mediaRecorder={mediaRecorder} />
+```
 
 ---
 
