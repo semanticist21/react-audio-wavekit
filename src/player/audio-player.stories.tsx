@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { RecordingWaveform } from "../recorder/recording-waveform-compound";
+import { RecordingWaveform } from "../recorder/recording-waveform/compound";
 import { useAudioRecorder } from "../recorder/use-audio-recorder";
 import rawSource from "./audio-player.stories.tsx?raw";
 

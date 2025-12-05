@@ -1,6 +1,6 @@
 import { forwardRef, type HTMLAttributes, type ReactNode, useEffect, useRef } from "react";
-import { getCanvasBarStyles } from "../waveform/util-canvas";
-import { RecordingWaveformProvider, useRecordingWaveformContext } from "./recording-waveform-context";
+import { getCanvasBarStyles } from "../../waveform/util-canvas";
+import { RecordingWaveformProvider, useRecordingWaveformContext } from "./context";
 import type { UseRecordingAmplitudesOptions } from "./use-recording-amplitudes";
 
 // ============================================================================

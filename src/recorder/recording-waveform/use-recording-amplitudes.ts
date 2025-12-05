@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useAudioAnalyser } from "./use-audio-analyser";
+import { useAudioAnalyser } from "../use-audio-analyser";
 
 export interface UseRecordingAmplitudesOptions {
   /** MediaRecorder instance to sample from */

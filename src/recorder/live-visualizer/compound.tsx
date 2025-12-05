@@ -1,6 +1,6 @@
 import { forwardRef, type HTMLAttributes, type ReactNode, useEffect, useRef } from "react";
-import { getCanvasBarStyles } from "../waveform/util-canvas";
-import { LiveVisualizerProvider, useLiveVisualizerContext } from "./live-visualizer-context";
+import { getCanvasBarStyles } from "../../waveform/util-canvas";
+import { LiveVisualizerProvider, useLiveVisualizerContext } from "./context";
 import type { UseLiveAudioDataOptions } from "./use-live-audio-data";
 
 // ============================================================================

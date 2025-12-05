@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useAudioAnalyser } from "./use-audio-analyser";
+import { useAudioAnalyser } from "../use-audio-analyser";
 
 export interface UseLiveAudioDataOptions {
   /** MediaRecorder instance to visualize */
