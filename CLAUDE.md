@@ -23,6 +23,7 @@ bun run fix             # Fix linting issues with Biome
 
 ```
 src/
+├── index.tsx              # Library entry point (exports all public APIs)
 ├── index.css              # Tailwind import (Storybook only)
 ├── waveform/              # Static waveform visualization
 │   ├── index.tsx             # Main AudioWaveform component (Suspense-enabled)
@@ -44,11 +45,13 @@ src/
 - **Styling:** Tailwind CSS v4 - classes only, no CSS bundled
 - **Output:** `dist/index.js` (ESM), `dist/index.cjs` (CJS), `dist/index.d.ts` (types)
 - **Externals:** React/ReactDOM are peer dependencies, not bundled
-- **Linting:** Biome for code quality, tsgo for type checking
+- **Linting:** Biome (lineWidth: 120, double quotes, semicolons, ES5 trailing commas)
+- **Type Checking:** tsgo (TypeScript native preview with `--noEmit`)
 
 ## Code Conventions
 
 - **File naming:** kebab-case (e.g., `audio-waveform.tsx`, `use-audio-recorder.ts`)
+- **Exports:** All public APIs exported from `src/index.tsx` (auto-sorted by Biome)
 - **Commit messages:** Conventional commit format, title only
 
 ## Component API
