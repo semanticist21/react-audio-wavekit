@@ -5,3 +5,4 @@ storybook-static
 .DS_Store
 *.tsbuildinfo
 .netlify
+.playwright-mcp
