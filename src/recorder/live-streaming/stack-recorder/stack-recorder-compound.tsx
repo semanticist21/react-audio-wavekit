@@ -94,9 +94,9 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
         // Maintain fixed width (fit to container width)
         const canvasWidth = containerWidth;
 
-        canvas.width = canvasWidth * dpr;
-        canvas.height = containerHeight * dpr;
-        ctx.scale(dpr, dpr);
+        // canvas.width/height는 ResizeObserver에서만 설정 (여기서 설정하면 매 프레임 버퍼 재생성으로 깜빡임)
+        // setTransform으로 DPR 스케일만 재적용
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
         // Clear canvas
         ctx.clearRect(0, 0, canvasWidth, containerHeight);
@@ -148,6 +148,7 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
     }, [amplitudes, isRecording, appearance]);
 
     // Track container size with ResizeObserver (cache size to prevent per-frame reflow)
+    // Canvas 크기는 여기서만 설정하여 매 프레임 재설정으로 인한 깜빡임 방지
     useEffect(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -161,6 +162,11 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
         if (sizeRef.current.width === width && sizeRef.current.height === height) return;
 
         sizeRef.current = { width, height };
+
+        // Canvas 크기는 ResizeObserver에서만 설정 (매 프레임 설정 시 버퍼 재생성으로 깜빡임 발생)
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
 
         // Redraw when container size changes
         if (!isRecording) {
