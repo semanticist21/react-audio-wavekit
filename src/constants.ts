@@ -1,4 +1,4 @@
-import type { WaveformAppearance } from "./types";
+import type { ScrollbarAppearance, WaveformAppearance } from "./types";
 
 // ============================================================================
 // Default constants - Waveform and playhead default styles
@@ -16,3 +16,13 @@ export const DEFAULT_PLAYHEAD_APPEARANCE = {
   playheadColor: "#ef4444",
   playheadWidth: 2,
 } as const;
+
+export const DEFAULT_SCROLLBAR_APPEARANCE: Required<ScrollbarAppearance> = {
+  width: 8,
+  height: 8,
+  thumbColor: "rgba(148, 163, 184, 0.3)",
+  thumbHoverColor: "rgba(148, 163, 184, 0.5)",
+  thumbRadius: 4,
+  trackColor: "transparent",
+  hidden: false,
+};

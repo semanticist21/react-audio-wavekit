@@ -1,6 +1,6 @@
-import { forwardRef, type HTMLAttributes, type ReactNode, useCallback, useEffect, useRef } from "react";
-import { DEFAULT_WAVEFORM_APPEARANCE } from "../../../constants";
-import type { WaveformAppearance } from "../../../types";
+import { forwardRef, type HTMLAttributes, type ReactNode, useCallback, useEffect, useId, useRef } from "react";
+import { DEFAULT_SCROLLBAR_APPEARANCE, DEFAULT_WAVEFORM_APPEARANCE } from "../../../constants";
+import type { LiveStreamingRecorderAppearance } from "../../../types";
 import type { UseRecordingAmplitudesOptions } from "../use-recording-amplitudes";
 import { LiveStreamingRecorderProvider, useLiveStreamingRecorderContext } from "./recorder-context";
 
@@ -12,44 +12,101 @@ export interface LiveStreamingRecorderRootProps
   extends UseRecordingAmplitudesOptions,
     Omit<HTMLAttributes<HTMLDivElement>, "children"> {
   children: ReactNode | ((value: ReturnType<typeof useLiveStreamingRecorderContext>) => ReactNode);
+  /** Appearance configuration (waveform + scrollbar styles) */
+  appearance?: LiveStreamingRecorderAppearance;
 }
 
 const LiveStreamingRecorderRoot = forwardRef<HTMLDivElement, LiveStreamingRecorderRootProps>(
   function LiveStreamingRecorderRoot(
-    { children, className = "", style, mediaRecorder, fftSize, smoothingTimeConstant, sampleInterval, ...props },
+    {
+      children,
+      className = "",
+      style,
+      mediaRecorder,
+      fftSize,
+      smoothingTimeConstant,
+      sampleInterval,
+      appearance,
+      ...props
+    },
     ref
   ) {
-    // Inject WebKit overlay scrollbar styles (runs once)
+    // 고유한 scrollbar 클래스명 생성 (appearance별 스타일 충돌 방지)
+    const uniqueId = useId().replace(/:/g, "");
+    const scrollbarClassName = `lsr-scrollbar-${uniqueId}`;
+
+    // Scrollbar appearance 값 추출 (defaults 적용)
+    const scrollbar = appearance?.scrollbar;
+    const scrollbarWidth = scrollbar?.width ?? DEFAULT_SCROLLBAR_APPEARANCE.width;
+    const scrollbarHeight = scrollbar?.height ?? DEFAULT_SCROLLBAR_APPEARANCE.height;
+    const thumbColor = scrollbar?.thumbColor ?? DEFAULT_SCROLLBAR_APPEARANCE.thumbColor;
+    const thumbHoverColor = scrollbar?.thumbHoverColor ?? DEFAULT_SCROLLBAR_APPEARANCE.thumbHoverColor;
+    const thumbRadius = scrollbar?.thumbRadius ?? DEFAULT_SCROLLBAR_APPEARANCE.thumbRadius;
+    const trackColor = scrollbar?.trackColor ?? DEFAULT_SCROLLBAR_APPEARANCE.trackColor;
+    const hidden = scrollbar?.hidden ?? DEFAULT_SCROLLBAR_APPEARANCE.hidden;
+
+    // WebKit scrollbar 스타일 주입 (appearance 변경 시 업데이트)
     useEffect(() => {
-      const styleId = "live-streaming-recorder-scrollbar-style";
-      if (document.getElementById(styleId)) return;
+      const styleId = `lsr-style-${uniqueId}`;
+
+      // 기존 스타일 제거 후 재생성
+      document.getElementById(styleId)?.remove();
 
       const styleElement = document.createElement("style");
       styleElement.id = styleId;
-      styleElement.textContent = `
-        .live-streaming-recorder-overlay-scrollbar::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-        }
-        .live-streaming-recorder-overlay-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .live-streaming-recorder-overlay-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(148, 163, 184, 0.3);
-          border-radius: 4px;
-        }
-        .live-streaming-recorder-overlay-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(148, 163, 184, 0.5);
-        }
-      `;
+      styleElement.textContent = hidden
+        ? `
+          .${scrollbarClassName}::-webkit-scrollbar {
+            display: none;
+          }
+          .${scrollbarClassName} {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `
+        : `
+          .${scrollbarClassName}::-webkit-scrollbar {
+            width: ${scrollbarWidth}px;
+            height: ${scrollbarHeight}px;
+          }
+          .${scrollbarClassName}::-webkit-scrollbar-track {
+            background: ${trackColor};
+          }
+          .${scrollbarClassName}::-webkit-scrollbar-thumb {
+            background: ${thumbColor};
+            border-radius: ${thumbRadius}px;
+          }
+          .${scrollbarClassName}::-webkit-scrollbar-thumb:hover {
+            background: ${thumbHoverColor};
+          }
+        `;
       document.head.appendChild(styleElement);
-    }, []);
 
-    // Apply default scrollbar styles and overflow (LiveStreamingRecorder uses scrolling concept)
-    const mergedClassName = `overflow-x-auto overflow-y-hidden live-streaming-recorder-overlay-scrollbar [scrollbar-width:thin] [scrollbar-color:rgba(148,163,184,0.3)_transparent] ${className}`;
+      return () => {
+        document.getElementById(styleId)?.remove();
+      };
+    }, [
+      uniqueId,
+      scrollbarClassName,
+      scrollbarWidth,
+      scrollbarHeight,
+      thumbColor,
+      thumbHoverColor,
+      thumbRadius,
+      trackColor,
+      hidden,
+    ]);
+
+    // Firefox scrollbar 스타일 (inline style로 적용)
+    const firefoxScrollbarStyle: React.CSSProperties = hidden
+      ? { msOverflowStyle: "none", scrollbarWidth: "none" }
+      : { scrollbarWidth: "thin", scrollbarColor: `${thumbColor} ${trackColor}` };
+
+    // overflow 스타일 적용 (LiveStreamingRecorder는 가로 스크롤 사용)
+    const mergedClassName = `overflow-x-auto overflow-y-hidden ${scrollbarClassName} ${className}`;
 
     return (
-      <div ref={ref} className={mergedClassName} style={style} {...props}>
+      <div ref={ref} className={mergedClassName} style={{ ...firefoxScrollbarStyle, ...style }} {...props}>
         <LiveStreamingRecorderProvider
           mediaRecorder={mediaRecorder}
           fftSize={fftSize}
@@ -72,8 +129,8 @@ export interface LiveStreamingRecorderCanvasProps extends HTMLAttributes<HTMLCan
   className?: string;
   /** Inline styles for canvas element */
   style?: React.CSSProperties;
-  /** Waveform appearance configuration (barColor, barWidth, etc.) */
-  appearance?: WaveformAppearance;
+  /** Waveform appearance configuration (barColor, barWidth, etc.) - scrollbar 설정은 Root에서만 유효 */
+  appearance?: LiveStreamingRecorderAppearance;
   /**
    * Allow canvas width to grow beyond container (enables scrolling)
    * - true: Canvas grows horizontally as recording continues (Voice Memos style)

@@ -29,3 +29,33 @@ export interface AudioWaveformAppearance extends WaveformAppearance {
   /** Playhead width (pixels). Default: 2 */
   playheadWidth?: number;
 }
+
+/**
+ * Scrollbar appearance configuration
+ * Used by LiveStreamingRecorder for custom scrollbar styling
+ */
+export interface ScrollbarAppearance {
+  /** Scrollbar width (pixels). Default: 8 */
+  width?: number;
+  /** Scrollbar height (pixels). Default: 8 */
+  height?: number;
+  /** Scrollbar thumb color (CSS color value). Default: "rgba(148, 163, 184, 0.3)" */
+  thumbColor?: string;
+  /** Scrollbar thumb hover color (CSS color value). Default: "rgba(148, 163, 184, 0.5)" */
+  thumbHoverColor?: string;
+  /** Scrollbar thumb border radius (pixels). Default: 4 */
+  thumbRadius?: number;
+  /** Scrollbar track color (CSS color value). Default: "transparent" */
+  trackColor?: string;
+  /** Hide scrollbar completely. Default: false */
+  hidden?: boolean;
+}
+
+/**
+ * LiveStreamingRecorder-specific appearance configuration
+ * Extends WaveformAppearance with scrollbar styles
+ */
+export interface LiveStreamingRecorderAppearance extends WaveformAppearance {
+  /** Scrollbar appearance configuration */
+  scrollbar?: ScrollbarAppearance;
+}

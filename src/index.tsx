@@ -2,8 +2,13 @@
 // Types
 // ============================================================================
 
-export { DEFAULT_PLAYHEAD_APPEARANCE, DEFAULT_WAVEFORM_APPEARANCE } from "./constants.js";
-export type { AudioWaveformAppearance, WaveformAppearance } from "./types.js";
+export { DEFAULT_PLAYHEAD_APPEARANCE, DEFAULT_SCROLLBAR_APPEARANCE, DEFAULT_WAVEFORM_APPEARANCE } from "./constants.js";
+export type {
+  AudioWaveformAppearance,
+  LiveStreamingRecorderAppearance,
+  ScrollbarAppearance,
+  WaveformAppearance,
+} from "./types.js";
 
 // ============================================================================
 // Headless Hooks
