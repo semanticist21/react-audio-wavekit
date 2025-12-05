@@ -81,52 +81,143 @@ src/
 
 **AudioWaveform** - Static waveform visualization with playhead support:
 ```tsx
-// Basic usage
-<AudioWaveform blob={audioBlob} className="h-32 w-full" />
+import { AudioWaveform } from "react-audio-waveform";
+import { useEffect, useRef, useState } from "react";
 
-// With playhead and seek
-<AudioWaveform
-  blob={audioBlob}
-  className="h-32 w-full"
-  currentTime={audioElement.currentTime}
-  duration={audioElement.duration}
-  onSeek={(time) => audioElement.currentTime = time}
-  appearance={{ playheadColor: "#ef4444", playheadWidth: 2 }}
-/>
+function AudioPlayer() {
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string>("");
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
-// Custom bar styling via appearance prop
-<AudioWaveform
-  blob={audioBlob}
-  className="h-32 w-full"
-  appearance={{ barColor: "#22c55e", barWidth: 5, barGap: 2, barRadius: 2 }}
-/>
+  // 오디오 파일을 Blob으로 로드
+  useEffect(() => {
+    fetch("/audio.mp3")
+      .then((res) => res.blob())
+      .then((blob) => {
+        setAudioBlob(blob);
+        setAudioUrl(URL.createObjectURL(blob));
+      });
+  }, []);
+
+  // 오디오 이벤트 리스너 설정
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
+    const handleDurationChange = () => setDuration(audio.duration);
+
+    audio.addEventListener("timeupdate", handleTimeUpdate);
+    audio.addEventListener("durationchange", handleDurationChange);
+
+    return () => {
+      audio.removeEventListener("timeupdate", handleTimeUpdate);
+      audio.removeEventListener("durationchange", handleDurationChange);
+    };
+  }, [audioUrl]);
+
+  // Waveform 클릭 시 해당 위치로 이동
+  const handleSeek = (time: number) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+    }
+  };
+
+  if (!audioBlob) return <div>Loading...</div>;
+
+  return (
+    <div>
+      {/* Waveform with playhead - canvas에 직접 스타일 적용 */}
+      <AudioWaveform
+        blob={audioBlob}
+        className="h-40 w-full rounded-xl bg-slate-950/50 p-4"
+        currentTime={currentTime}
+        duration={duration}
+        onSeek={handleSeek}
+        appearance={{
+          barColor: "#3b82f6",
+          barWidth: 1,
+          barGap: 1.5,
+          barRadius: 2,
+          playheadColor: "#ef4444",
+          playheadWidth: 3,
+        }}
+      />
+
+      {/* 숨겨진 audio 요소 */}
+      <audio ref={audioRef} src={audioUrl} />
+    </div>
+  );
+}
 ```
 
 ### Compound Components
 
-**LiveStreamingRecorder** - Timeline waveform recording (scrolling):
+**LiveStreamingRecorder** - Timeline waveform recording (scrolling, Voice Memos style):
 ```tsx
-<LiveStreamingRecorder.Root
-  mediaRecorder={mediaRecorder}
-  className="w-72 overflow-x-auto"
->
-  <LiveStreamingRecorder.Canvas
-    appearance={{ barColor: "#3b82f6", barWidth: 3, barGap: 1 }}
-    growWidth={true}
-  />
-</LiveStreamingRecorder.Root>
+import { LiveStreamingRecorder, useAudioRecorder } from "react-audio-waveform";
+
+function RecorderExample() {
+  const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
+    useAudioRecorder();
+
+  const handleRecordClick = () => {
+    if (!isRecording) {
+      startRecording();
+    } else if (isPaused) {
+      resumeRecording();
+    } else {
+      pauseRecording();
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-4">
+      {/* Record/Pause 버튼 */}
+      <button type="button" onClick={handleRecordClick}>
+        {!isRecording || isPaused ? "Record" : "Pause"}
+      </button>
+
+      {/* Timeline waveform - 녹음 진행에 따라 가로로 늘어남 */}
+      <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100">
+        <LiveStreamingRecorder.Canvas />
+      </LiveStreamingRecorder.Root>
+
+      {/* Stop 버튼 */}
+      <button type="button" onClick={stopRecording} disabled={!isRecording}>
+        Stop
+      </button>
+    </div>
+  );
+}
 ```
 
-**LiveStreamingStackRecorder** - Fixed width waveform (bars compress):
+**LiveStreamingStackRecorder** - Fixed width waveform (bars compress as recording grows):
 ```tsx
-<LiveStreamingStackRecorder.Root
-  mediaRecorder={mediaRecorder}
-  className="w-72"
->
-  <LiveStreamingStackRecorder.Canvas
-    appearance={{ barColor: "#3b82f6", barWidth: 3, barGap: 1 }}
-  />
-</LiveStreamingStackRecorder.Root>
+import { LiveStreamingStackRecorder, useAudioRecorder } from "react-audio-waveform";
+
+function StackRecorderExample() {
+  const { startRecording, stopRecording, mediaRecorder, isRecording } = useAudioRecorder();
+
+  return (
+    <div className="flex items-center gap-4">
+      <button type="button" onClick={startRecording} disabled={isRecording}>
+        Record
+      </button>
+
+      {/* Fixed width waveform - 녹음이 길어지면 바가 압축됨 */}
+      <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100">
+        <LiveStreamingStackRecorder.Canvas className="text-slate-600" />
+      </LiveStreamingStackRecorder.Root>
+
+      <button type="button" onClick={stopRecording} disabled={!isRecording}>
+        Stop
+      </button>
+    </div>
+  );
+}
 ```
 
 ### Headless Hooks

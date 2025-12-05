@@ -249,16 +249,19 @@ export const Default: Story = {
   parameters: {
     docs: {
       source: {
-        code: `function LiveStreamingRecorderPlayer() {
+        code: `import { LiveStreamingRecorder, useAudioRecorder } from "react-audio-waveform";
+
+function LiveStreamingRecorderPlayer() {
   const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
     useAudioRecorder({
       onRecordingComplete: (audioBlob) => {
-        // Uncomment to play audio in new tab when recording completes
-        // const audioUrl = URL.createObjectURL(audioBlob);
-        // window.open(audioUrl, "_blank");
+        // 녹음 완료 후 처리
+        const audioUrl = URL.createObjectURL(audioBlob);
+        window.open(audioUrl, "_blank");
       },
     });
 
+  // 녹음 시작/일시정지/재개 버튼 핸들러
   const handleRecordClick = () => {
     if (!isRecording) {
       startRecording();
@@ -272,17 +275,40 @@ export const Default: Story = {
   return (
     <div className="flex h-screen w-full items-center justify-center bg-slate-100">
       <div className="flex h-24 w-fit items-center gap-4 rounded-2xl bg-white px-5 shadow-lg">
-        <button type="button" onClick={handleRecordClick}>
-          {/* Record/pause button UI */}
+        {/* 녹음/일시정지 버튼 */}
+        <button
+          type="button"
+          onClick={handleRecordClick}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-md"
+        >
+          {!isRecording ? (
+            // 녹음 시작: 빨간 원
+            <div className="h-4 w-4 rounded-full bg-red-500" />
+          ) : isPaused ? (
+            // 일시정지에서 재개: 빨간 원
+            <div className="h-4 w-4 rounded-full bg-red-500" />
+          ) : (
+            // 녹음 중 일시정지: 두 개의 세로 막대
+            <div className="flex gap-0.5">
+              <div className="h-4 w-1 rounded-sm bg-orange-500" />
+              <div className="h-4 w-1 rounded-sm bg-orange-500" />
+            </div>
+          )}
         </button>
 
-        {/* Timeline waveform visualization */}
-        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 bg-slate-100 rounded-sm">
+        {/* 타임라인 웨이브폼 (녹음 진행에 따라 스크롤) */}
+        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100">
           <LiveStreamingRecorder.Canvas />
         </LiveStreamingRecorder.Root>
 
-        <button type="button" onClick={stopRecording} disabled={!isRecording}>
-          {/* Stop button UI */}
+        {/* 정지 버튼 */}
+        <button
+          type="button"
+          onClick={stopRecording}
+          disabled={!isRecording}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-md disabled:opacity-40"
+        >
+          <div className="h-3.5 w-3.5 rounded-sm bg-slate-700" />
         </button>
       </div>
     </div>
@@ -298,7 +324,10 @@ export const WithPlay: StoryObj<typeof LiveStreamingRecorderPlayerWithPlay> = {
   parameters: {
     docs: {
       source: {
-        code: `function LiveStreamingRecorderPlayerWithPlay() {
+        code: `import { useEffect, useRef } from "react";
+import { LiveStreamingRecorder, useAudioRecorder } from "react-audio-waveform";
+
+function LiveStreamingRecorderPlayerWithPlay() {
   const {
     startRecording,
     stopRecording,
@@ -312,7 +341,7 @@ export const WithPlay: StoryObj<typeof LiveStreamingRecorderPlayerWithPlay> = {
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Set blob URL to audio element when recording completes
+  // 녹음 완료 시 audio 요소에 blob URL 설정
   useEffect(() => {
     if (recordingBlob && audioRef.current) {
       const url = URL.createObjectURL(recordingBlob);
@@ -321,13 +350,55 @@ export const WithPlay: StoryObj<typeof LiveStreamingRecorderPlayerWithPlay> = {
     }
   }, [recordingBlob]);
 
+  const handleRecordClick = () => {
+    if (!isRecording) {
+      startRecording();
+    } else if (isPaused) {
+      resumeRecording();
+    } else {
+      pauseRecording();
+    }
+  };
+
   return (
-    <div>
-      <div>{/* Recording controls */}</div>
+    <div className="flex h-screen w-full flex-col items-center justify-center gap-6 bg-slate-100">
+      <div className="flex h-24 w-fit items-center gap-4 rounded-2xl bg-white px-5 shadow-lg">
+        <button
+          type="button"
+          onClick={handleRecordClick}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-md"
+        >
+          {!isRecording ? (
+            <div className="h-4 w-4 rounded-full bg-red-500" />
+          ) : isPaused ? (
+            <div className="h-4 w-4 rounded-full bg-red-500" />
+          ) : (
+            <div className="flex gap-0.5">
+              <div className="h-4 w-1 rounded-sm bg-orange-500" />
+              <div className="h-4 w-1 rounded-sm bg-orange-500" />
+            </div>
+          )}
+        </button>
+
+        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100">
+          <LiveStreamingRecorder.Canvas className="text-slate-600" />
+        </LiveStreamingRecorder.Root>
+
+        <button
+          type="button"
+          onClick={stopRecording}
+          disabled={!isRecording}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-md disabled:opacity-40"
+        >
+          <div className="h-3.5 w-3.5 rounded-sm bg-slate-700" />
+        </button>
+      </div>
+
+      {/* 녹음 완료 후 오디오 재생 UI */}
       {recordingBlob && (
-        <div>
-          <p>Recording Complete</p>
-          <audio ref={audioRef} controls />
+        <div className="flex w-fit flex-col items-center gap-3 rounded-2xl bg-white p-5 shadow-lg">
+          <p className="text-sm font-medium text-slate-700">Recording Complete</p>
+          <audio ref={audioRef} controls className="w-80" />
         </div>
       )}
     </div>
@@ -343,7 +414,9 @@ export const WithDownload: StoryObj<typeof LiveStreamingRecorderPlayerWithDownlo
   parameters: {
     docs: {
       source: {
-        code: `function LiveStreamingRecorderPlayerWithDownload() {
+        code: `import { LiveStreamingRecorder, useAudioRecorder } from "react-audio-waveform";
+
+function LiveStreamingRecorderPlayerWithDownload() {
   const {
     startRecording,
     stopRecording,
@@ -355,7 +428,17 @@ export const WithDownload: StoryObj<typeof LiveStreamingRecorderPlayerWithDownlo
     isPaused,
   } = useAudioRecorder();
 
-  // Download button click handler
+  const handleRecordClick = () => {
+    if (!isRecording) {
+      startRecording();
+    } else if (isPaused) {
+      resumeRecording();
+    } else {
+      pauseRecording();
+    }
+  };
+
+  // 다운로드 버튼 클릭 핸들러
   const handleDownload = () => {
     if (!recordingBlob) return;
 
@@ -370,12 +453,48 @@ export const WithDownload: StoryObj<typeof LiveStreamingRecorderPlayerWithDownlo
   };
 
   return (
-    <div>
-      <div>{/* Recording controls */}</div>
+    <div className="flex h-screen w-full flex-col items-center justify-center gap-6 bg-slate-100">
+      <div className="flex h-24 w-fit items-center gap-4 rounded-2xl bg-white px-5 shadow-lg">
+        <button
+          type="button"
+          onClick={handleRecordClick}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-md"
+        >
+          {!isRecording ? (
+            <div className="h-4 w-4 rounded-full bg-red-500" />
+          ) : isPaused ? (
+            <div className="h-4 w-4 rounded-full bg-red-500" />
+          ) : (
+            <div className="flex gap-0.5">
+              <div className="h-4 w-1 rounded-sm bg-orange-500" />
+              <div className="h-4 w-1 rounded-sm bg-orange-500" />
+            </div>
+          )}
+        </button>
+
+        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100">
+          <LiveStreamingRecorder.Canvas className="text-slate-600" />
+        </LiveStreamingRecorder.Root>
+
+        <button
+          type="button"
+          onClick={stopRecording}
+          disabled={!isRecording}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-md disabled:opacity-40"
+        >
+          <div className="h-3.5 w-3.5 rounded-sm bg-slate-700" />
+        </button>
+      </div>
+
+      {/* 녹음 완료 후 다운로드 UI */}
       {recordingBlob && (
-        <div>
-          <p>Recording Complete</p>
-          <button type="button" onClick={handleDownload}>
+        <div className="flex w-fit flex-col items-center gap-3 rounded-2xl bg-white p-5 shadow-lg">
+          <p className="text-sm font-medium text-slate-700">Recording Complete</p>
+          <button
+            type="button"
+            onClick={handleDownload}
+            className="rounded-lg bg-blue-500 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-600"
+          >
             Download Recording
           </button>
         </div>
