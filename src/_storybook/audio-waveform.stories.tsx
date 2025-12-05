@@ -148,12 +148,18 @@ function AudioWaveformPlayer() {
         <div className="h-40 cursor-pointer rounded-xl bg-slate-950/50 p-4 ring-1 ring-slate-700/50 transition-all hover:ring-slate-600/50">
           <AudioWaveform
             blob={audioBlob}
-            className="h-full w-full text-blue-500"
+            className="h-full w-full"
             currentTime={currentTime}
             duration={duration}
             onSeek={handleSeek}
-            playheadClassName="text-red-500 [--playhead-width:3]"
-            barConfig={{ width: 3, gap: 1.5, radius: 2 }}
+            appearance={{
+              barColor: "#3b82f6",
+              barWidth: 3,
+              barGap: 1.5,
+              barRadius: 2,
+              playheadColor: "#ef4444",
+              playheadWidth: 3,
+            }}
           />
         </div>
 
@@ -266,11 +272,15 @@ export const Default: Story = {
       <div className="h-32 rounded-lg bg-slate-100">
         <AudioWaveform
           blob={audioBlob}
-          className="h-full text-blue-500"
+          className="h-full"
           currentTime={currentTime}
           duration={duration}
           onSeek={handleSeek}
-          playheadClassName="text-blue-500 [--playhead-width:2]"
+          appearance={{
+            barColor: "#3b82f6",
+            playheadColor: "#3b82f6",
+            playheadWidth: 2,
+          }}
         />
       </div>
 

@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
+import type { AudioWaveformAppearance } from "../types";
 import { decodeAudioBlob, getAudioData } from "./util-audio-decoder";
-import type { BarConfig } from "./util-canvas";
 import { unwrapPromise } from "./util-suspense";
 import { WaveformRenderer, type WaveformRendererRef } from "./waveform-renderer";
 
@@ -13,8 +13,8 @@ export interface AudioWaveformProps {
   blob: Blob | null;
   /** Additional class name for the canvas */
   className?: string;
-  /** Bar styling configuration */
-  barConfig?: BarConfig;
+  /** Waveform appearance configuration (barColor, barWidth, playheadColor 등) */
+  appearance?: AudioWaveformAppearance;
   /** Enable Suspense mode (requires Suspense boundary in parent) */
   suspense?: boolean;
   /** Current playback time in seconds (shows playhead) */
@@ -23,8 +23,6 @@ export interface AudioWaveformProps {
   duration?: number;
   /** Callback when user clicks/seeks on waveform */
   onSeek?: (time: number) => void;
-  /** Playhead class name for Tailwind styling (e.g., "text-red-500 [--playhead-width:3]") */
-  playheadClassName?: string;
 }
 
 export interface AudioWaveformRef {
@@ -32,7 +30,7 @@ export interface AudioWaveformRef {
 }
 
 export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(function AudioWaveform(
-  { blob, className, barConfig, suspense = false, currentTime, duration, onSeek, playheadClassName },
+  { blob, className, appearance, suspense = false, currentTime, duration, onSeek },
   ref
 ) {
   const [peaks, setPeaks] = useState<number[] | null>(null);
@@ -101,11 +99,10 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
       ref={rendererRef}
       peaks={finalPeaks}
       className={className}
-      barConfig={barConfig}
+      appearance={appearance}
       currentTime={currentTime}
       duration={duration}
       onSeek={onSeek}
-      playheadClassName={playheadClassName}
     />
   );
 });

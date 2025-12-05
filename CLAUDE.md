@@ -25,32 +25,31 @@ bun run fix             # Fix linting issues with Biome
 src/
 ├── index.tsx              # Library entry point (exports all public APIs)
 ├── index.css              # Tailwind import (Storybook only)
+├── types.ts               # Shared appearance types (WaveformAppearance, defaults)
 ├── waveform/              # Static waveform visualization
 │   ├── index.tsx                  # Main AudioWaveform component
-│   ├── use-audio-waveform.ts       # Headless hook
-│   ├── waveform-renderer.tsx       # Canvas rendering logic
-│   ├── util-audio-decoder.ts       # Web Audio API decoding
-│   ├── util-canvas.ts              # Canvas style utilities
-│   └── util-suspense.ts            # React Suspense cache
+│   ├── use-audio-waveform.ts      # Headless hook
+│   ├── waveform-renderer.tsx      # Canvas rendering logic
+│   ├── util-audio-decoder.ts      # Web Audio API decoding
+│   └── util-suspense.ts           # React Suspense cache
 ├── recorder/              # Live recording components
 │   ├── live-recorder/         # Real-time frequency bars
 │   │   └── use-live-audio-data.ts # Headless hook
-│   ├── live-streaming/        # Timeline waveform (scrolling, Voice Memos style)
-│   │   ├── recorder/
-│   │   │   ├── recorder-compound.tsx # Compound component API (LiveStreamingRecorder)
-│   │   │   └── recorder-context.tsx  # Context provider
-│   │   └── use-recording-amplitudes.ts # Headless hook
-│   ├── live-streaming-stack/  # Fixed width waveform (bars compress)
-│   │   ├── recorder/
-│   │   │   ├── recorder-compound.tsx # Compound component API (LiveStreamingStackRecorder)
-│   │   │   └── recorder-context.tsx  # Context provider
-│   │   └── use-recording-amplitudes.ts # Headless hook
+│   ├── live-streaming/        # Both timeline recorders share this folder
+│   │   ├── types.ts               # Shared recorder types
+│   │   ├── use-recording-amplitudes.ts # Shared headless hook
+│   │   ├── recorder/              # Scrolling timeline (Voice Memos style)
+│   │   │   ├── index.tsx              # Entry point
+│   │   │   ├── recorder-compound.tsx  # LiveStreamingRecorder compound API
+│   │   │   └── recorder-context.tsx   # Context provider
+│   │   └── stack-recorder/        # Fixed width (bars compress)
+│   │       ├── index.tsx              # Entry point
+│   │       ├── stack-recorder-compound.tsx # LiveStreamingStackRecorder compound API
+│   │       └── stack-recorder-context.tsx  # Context provider
 │   ├── use-audio-analyser.ts # Shared Web Audio setup hook
-│   └── use-audio-recorder.ts # MediaRecorder hook with pause/resume
+│   ├── use-audio-recorder.ts # MediaRecorder hook with pause/resume
+│   └── util-mime-type.ts     # Audio MIME type detection
 └── _storybook/            # Storybook demo stories
-    ├── audio-waveform.stories.tsx
-    ├── live-streaming-recorder-player.stories.tsx
-    └── live-streaming-stack-recorder-player.stories.tsx
 ```
 
 **Component Architecture Pattern:**
@@ -83,31 +82,24 @@ src/
 **AudioWaveform** - Static waveform visualization with playhead support:
 ```tsx
 // Basic usage
-<div className="h-32 bg-gray-100">
-  <AudioWaveform blob={audioBlob} className="h-full text-blue-500" />
-</div>
+<AudioWaveform blob={audioBlob} className="h-32 w-full" />
 
 // With playhead and seek
-<div className="h-32 bg-gray-100">
-  <AudioWaveform
-    blob={audioBlob}
-    className="h-full text-blue-500"
-    currentTime={audioElement.currentTime}
-    duration={audioElement.duration}
-    onSeek={(time) => audioElement.currentTime = time}
-    playheadColor="#ef4444"
-    playheadWidth={2}
-  />
-</div>
+<AudioWaveform
+  blob={audioBlob}
+  className="h-32 w-full"
+  currentTime={audioElement.currentTime}
+  duration={audioElement.duration}
+  onSeek={(time) => audioElement.currentTime = time}
+  appearance={{ playheadColor: "#ef4444", playheadWidth: 2 }}
+/>
 
-// Custom bar styling
-<div className="h-32 bg-gray-100">
-  <AudioWaveform
-    blob={audioBlob}
-    className="h-full text-green-500"
-    barConfig={{ width: 5, gap: 2, radius: 2 }}
-  />
-</div>
+// Custom bar styling via appearance prop
+<AudioWaveform
+  blob={audioBlob}
+  className="h-32 w-full"
+  appearance={{ barColor: "#22c55e", barWidth: 5, barGap: 2, barRadius: 2 }}
+/>
 ```
 
 ### Compound Components
@@ -119,8 +111,7 @@ src/
   className="w-72 overflow-x-auto"
 >
   <LiveStreamingRecorder.Canvas
-    className="text-blue-500"
-    barConfig={{ width: 3, gap: 1, radius: 1.5 }}
+    appearance={{ barColor: "#3b82f6", barWidth: 3, barGap: 1 }}
     growWidth={true}
   />
 </LiveStreamingRecorder.Root>
@@ -133,8 +124,7 @@ src/
   className="w-72"
 >
   <LiveStreamingStackRecorder.Canvas
-    className="text-blue-500"
-    barConfig={{ width: 3, gap: 1, radius: 1.5 }}
+    appearance={{ barColor: "#3b82f6", barWidth: 3, barGap: 1 }}
   />
 </LiveStreamingStackRecorder.Root>
 ```
@@ -159,14 +149,11 @@ src/
 
 ## Key Implementation Details
 
-- **Canvas Color Inheritance:** Canvas uses `text-inherit` class to enable Tailwind color inheritance via `getComputedStyle(canvas).color`
-- **Bar Styling:** CSS custom properties via className `[--bar-width:3]`, `[--bar-gap:1]`, `[--bar-radius:1.5]` or `style` prop, or direct `barConfig`/`barStyle` props
+- **Appearance System:** All waveform components use `appearance` prop with `WaveformAppearance` type (barColor, barWidth, barGap, barRadius, barHeightScale). Defaults exported as `DEFAULT_WAVEFORM_APPEARANCE` from `types.ts`.
 - **Audio Decoding:** Web Audio API (`AudioContext.decodeAudioData`) for blob processing
 - **Device Pixel Ratio:** Automatic DPR support for sharp canvas rendering on retina displays
-- **Tailwind Integration:** Library consumers must include this package in their Tailwind `content` config
-- **Shared Utilities:** `getCanvasBarStyles()` in `util-canvas.ts` extracts bar styling from CSS variables for all visualizers
 - **Growing Canvas Width:** `LiveStreamingRecorder.Canvas` supports `growWidth` prop - when true, canvas grows horizontally as recording continues (Voice Memos style with scrolling)
-- **Playhead & Seek:** `AudioWaveform` supports playhead visualization and click-to-seek - pass `currentTime`, `duration`, and `onSeek` props. Playhead automatically calculates position and renders as a vertical line. Canvas becomes clickable when `onSeek` is provided.
+- **Playhead & Seek:** `AudioWaveform` supports playhead visualization and click-to-seek - pass `currentTime`, `duration`, and `onSeek` props. Uses `AudioWaveformAppearance` which extends `WaveformAppearance` with `playheadColor` and `playheadWidth`.
 
 ## Development Workflow
 

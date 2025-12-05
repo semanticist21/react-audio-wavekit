@@ -1,5 +1,5 @@
 import { forwardRef, type HTMLAttributes, type ReactNode, useCallback, useEffect, useRef } from "react";
-import type { BarConfig } from "../../../waveform/util-canvas";
+import { DEFAULT_WAVEFORM_APPEARANCE, type WaveformAppearance } from "../../../types";
 import type { UseRecordingAmplitudesOptions } from "../use-recording-amplitudes";
 import { LiveStreamingStackRecorderProvider, useLiveStreamingStackRecorderContext } from "./stack-recorder-context";
 
@@ -42,8 +42,8 @@ export interface LiveStreamingStackRecorderCanvasProps extends HTMLAttributes<HT
   className?: string;
   /** Inline styles for canvas element */
   style?: React.CSSProperties;
-  /** Bar configuration (width, gap, radius) */
-  barConfig?: BarConfig;
+  /** Waveform appearance configuration (barColor, barWidth 등) */
+  appearance?: WaveformAppearance;
   /**
    * Show minimal bars when not recording (idle state)
    * @default false
@@ -53,7 +53,7 @@ export interface LiveStreamingStackRecorderCanvasProps extends HTMLAttributes<HT
 
 const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingStackRecorderCanvasProps>(
   function LiveStreamingStackRecorderCanvas(
-    { className = "", style, barConfig, showIdleState = false, ...props },
+    { className = "", style, appearance, showIdleState = false, ...props },
     ref
   ) {
     const { amplitudes, isRecording, isPaused } = useLiveStreamingStackRecorderContext();
@@ -85,27 +85,14 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
       const containerWidth = rect.width;
       const containerHeight = rect.height;
 
-      // barConfig에서 bar 스타일 값 추출
-      const barWidth = barConfig?.width
-        ? typeof barConfig.width === "number"
-          ? barConfig.width
-          : Number.parseFloat(barConfig.width)
-        : 3;
-      const gap = barConfig?.gap
-        ? typeof barConfig.gap === "number"
-          ? barConfig.gap
-          : Number.parseFloat(barConfig.gap)
-        : 1;
-      const barRadius = barConfig?.radius
-        ? typeof barConfig.radius === "number"
-          ? barConfig.radius
-          : Number.parseFloat(barConfig.radius)
-        : 1.5;
+      // appearance에서 스타일 추출 (기본값 적용)
+      const barColor = appearance?.barColor ?? DEFAULT_WAVEFORM_APPEARANCE.barColor;
+      const barWidth = appearance?.barWidth ?? DEFAULT_WAVEFORM_APPEARANCE.barWidth;
+      const barGap = appearance?.barGap ?? DEFAULT_WAVEFORM_APPEARANCE.barGap;
+      const barRadius = appearance?.barRadius ?? DEFAULT_WAVEFORM_APPEARANCE.barRadius;
+      const barHeightScale = appearance?.barHeightScale ?? DEFAULT_WAVEFORM_APPEARANCE.barHeightScale;
 
-      // canvas에서 barColor 추출 (text-inherit를 통해 Tailwind color 사용)
-      const barColor = getComputedStyle(canvas).color || "#3b82f6";
-
-      const totalBarWidth = barWidth + gap;
+      const totalBarWidth = barWidth + barGap;
 
       // 녹음 중이거나 데이터가 있을 때
       if (isRecording || amplitudes.length > 0) {
@@ -137,7 +124,7 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
             maxAmplitude = Math.max(maxAmplitude, amplitudes[j] || 0);
           }
 
-          const barHeight = Math.max(minBarHeight, maxAmplitude * containerHeight * 0.9);
+          const barHeight = Math.max(minBarHeight, maxAmplitude * containerHeight * barHeightScale);
 
           const x = i * totalBarWidth;
           const y = (containerHeight - barHeight) / 2;
@@ -156,7 +143,7 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
 
         ctx.fillStyle = barColor;
         const minBarHeight = 2;
-        const barCount = Math.floor((containerWidth + gap) / totalBarWidth);
+        const barCount = Math.floor((containerWidth + barGap) / totalBarWidth);
 
         for (let i = 0; i < barCount; i++) {
           const x = i * totalBarWidth;
@@ -166,7 +153,7 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
           ctx.fill();
         }
       }
-    }, [amplitudes, isRecording, barConfig, showIdleState]);
+    }, [amplitudes, isRecording, appearance, showIdleState]);
 
     // Track container size with ResizeObserver
     useEffect(() => {
@@ -207,7 +194,7 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
     return (
       <canvas
         ref={canvasRef}
-        className={`text-inherit ${className}`}
+        className={className}
         style={{
           width: "100%",
           height: "100%",

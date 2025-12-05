@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactNode } from "react";
-import type { BarConfig } from "../../waveform/util-canvas";
+import type { WaveformAppearance } from "../../types";
 
 // ============================================================================
 // Common Hook Types
@@ -46,8 +46,8 @@ export interface BaseRecorderCanvasProps extends HTMLAttributes<HTMLCanvasElemen
   className?: string;
   /** Inline styles for canvas element */
   style?: React.CSSProperties;
-  /** Bar configuration (width, gap, radius) */
-  barConfig?: BarConfig;
+  /** Waveform appearance configuration (barColor, barWidth 등) */
+  appearance?: WaveformAppearance;
   /**
    * Show minimal bars when not recording (idle state)
    * @default true

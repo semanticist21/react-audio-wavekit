@@ -1,5 +1,5 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from "react";
-import type { BarConfig } from "./util-canvas";
+import { type AudioWaveformAppearance, DEFAULT_PLAYHEAD_APPEARANCE, DEFAULT_WAVEFORM_APPEARANCE } from "../types";
 
 // ============================================================================
 // Common Waveform Renderer (A)
@@ -10,16 +10,14 @@ export interface WaveformRendererProps {
   peaks: number[] | null;
   /** Additional class name for the canvas */
   className?: string;
-  /** Bar styling configuration */
-  barConfig?: BarConfig;
+  /** Waveform appearance configuration (barColor, barWidth, playheadColor 등) */
+  appearance?: AudioWaveformAppearance;
   /** Current playback time in seconds */
   currentTime?: number;
   /** Total audio duration in seconds */
   duration?: number;
   /** Callback when user clicks on waveform */
   onSeek?: (time: number) => void;
-  /** Playhead class name for Tailwind styling (e.g., "text-red-500 [--playhead-width:3]") */
-  playheadClassName?: string;
 }
 
 export interface WaveformRendererRef {
@@ -27,11 +25,10 @@ export interface WaveformRendererRef {
 }
 
 export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRendererProps>(function WaveformRenderer(
-  { peaks, className = "", barConfig, currentTime, duration, onSeek, playheadClassName },
+  { peaks, className = "", appearance, currentTime, duration, onSeek },
   ref
 ) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const playheadRef = useRef<HTMLSpanElement>(null);
   const sizeRef = useRef({ width: 0, height: 0 });
   const rafRef = useRef<number>(0);
 
@@ -60,35 +57,23 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
-    // Read bar styles from barConfig prop (defaults: width=3, gap=1, radius=1.5)
-    const barWidth = barConfig?.width
-      ? typeof barConfig.width === "number"
-        ? barConfig.width
-        : Number.parseFloat(barConfig.width)
-      : 3;
-    const gap = barConfig?.gap
-      ? typeof barConfig.gap === "number"
-        ? barConfig.gap
-        : Number.parseFloat(barConfig.gap)
-      : 1;
-    const barRadius = barConfig?.radius
-      ? typeof barConfig.radius === "number"
-        ? barConfig.radius
-        : Number.parseFloat(barConfig.radius)
-      : 1.5;
-    const heightScale = barConfig?.heightScale ?? 0.9;
+    // appearance에서 스타일 추출 (기본값 적용)
+    const barColor = appearance?.barColor ?? DEFAULT_WAVEFORM_APPEARANCE.barColor;
+    const barWidth = appearance?.barWidth ?? DEFAULT_WAVEFORM_APPEARANCE.barWidth;
+    const barGap = appearance?.barGap ?? DEFAULT_WAVEFORM_APPEARANCE.barGap;
+    const barRadius = appearance?.barRadius ?? DEFAULT_WAVEFORM_APPEARANCE.barRadius;
+    const barHeightScale = appearance?.barHeightScale ?? DEFAULT_WAVEFORM_APPEARANCE.barHeightScale;
 
-    const totalBarWidth = barWidth + gap;
+    const totalBarWidth = barWidth + barGap;
     const barsCount = Math.floor(width / totalBarWidth);
     const step = peaks.length / barsCount;
 
-    const styles = getComputedStyle(canvas);
-    ctx.fillStyle = styles.color || "#3b82f6";
+    ctx.fillStyle = barColor;
 
     for (let i = 0; i < barsCount; i++) {
       const peakIndex = Math.min(Math.floor(i * step), peaks.length - 1);
       const peak = peaks[peakIndex];
-      const barHeight = Math.max(peak * height * heightScale, 2);
+      const barHeight = Math.max(peak * height * barHeightScale, 2);
       const x = i * totalBarWidth;
       const y = (height - barHeight) / 2;
 
@@ -102,27 +87,15 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
     }
 
     // Playhead 렌더링 (currentTime과 duration이 있을 때만)
-    if (currentTime !== undefined && duration !== undefined && duration > 0 && playheadRef.current) {
+    if (currentTime !== undefined && duration !== undefined && duration > 0) {
       const playheadX = (currentTime / duration) * width;
+      const playheadColor = appearance?.playheadColor ?? DEFAULT_PLAYHEAD_APPEARANCE.playheadColor;
+      const playheadWidth = appearance?.playheadWidth ?? DEFAULT_PLAYHEAD_APPEARANCE.playheadWidth;
 
-      // playheadClassName에서 색상과 너비 추출 (Tailwind 지원)
-      const styles = getComputedStyle(playheadRef.current);
-      const finalColor = styles.color || "#ef4444"; // 기본값: 빨간색
-      let finalWidth = 2; // 기본값: 2px
-
-      // CSS 변수에서 너비 추출
-      const cssWidth = styles.getPropertyValue("--playhead-width").trim();
-      if (cssWidth) {
-        const parsed = Number.parseFloat(cssWidth);
-        if (!Number.isNaN(parsed)) {
-          finalWidth = parsed;
-        }
-      }
-
-      ctx.fillStyle = finalColor;
-      ctx.fillRect(playheadX - finalWidth / 2, 0, finalWidth, height);
+      ctx.fillStyle = playheadColor;
+      ctx.fillRect(playheadX - playheadWidth / 2, 0, playheadWidth, height);
     }
-  }, [peaks, barConfig, currentTime, duration]);
+  }, [peaks, appearance, currentTime, duration]);
 
   // ResizeObserver with RAF throttling
   useEffect(() => {
@@ -173,19 +146,13 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
   );
 
   return (
-    <>
-      <canvas
-        ref={canvasRef}
-        className={className}
-        role="img"
-        aria-label="Audio waveform"
-        onClick={handleClick}
-        style={{ cursor: onSeek ? "pointer" : undefined }}
-      />
-      {/* 숨겨진 요소: playheadClassName에서 스타일 추출용 */}
-      {playheadClassName && (
-        <span ref={playheadRef} className={playheadClassName} aria-hidden style={{ display: "none" }} />
-      )}
-    </>
+    <canvas
+      ref={canvasRef}
+      className={className}
+      role="img"
+      aria-label="Audio waveform"
+      onClick={handleClick}
+      style={{ cursor: onSeek ? "pointer" : undefined }}
+    />
   );
 });

@@ -1,11 +1,15 @@
 // ============================================================================
+// Types
+// ============================================================================
+
+export type { AudioWaveformAppearance, WaveformAppearance } from "./types.js";
+export { DEFAULT_PLAYHEAD_APPEARANCE, DEFAULT_WAVEFORM_APPEARANCE } from "./types.js";
+
+// ============================================================================
 // Headless Hooks
 // ============================================================================
 
-export type {
-  UseLiveAudioDataOptions,
-  UseLiveAudioDataReturn,
-} from "./recorder/live-recorder/use-live-audio-data.js";
+export type { UseLiveAudioDataOptions, UseLiveAudioDataReturn } from "./recorder/live-recorder/use-live-audio-data.js";
 // Live audio data extraction
 export { useLiveAudioData } from "./recorder/live-recorder/use-live-audio-data.js";
 export type {
@@ -23,7 +27,6 @@ export { useAudioRecorder } from "./recorder/use-audio-recorder.js";
 export type { UseAudioWaveformOptions, UseAudioWaveformReturn } from "./waveform/use-audio-waveform.js";
 // Waveform data extraction
 export { useAudioWaveform } from "./waveform/use-audio-waveform.js";
-export type { BarConfig, BarStyle } from "./waveform/util-canvas.js";
 
 // ============================================================================
 // Compound Components
