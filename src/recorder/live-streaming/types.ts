@@ -48,9 +48,4 @@ export interface BaseRecorderCanvasProps extends HTMLAttributes<HTMLCanvasElemen
   style?: React.CSSProperties;
   /** Waveform appearance configuration (barColor, barWidth 등) */
   appearance?: WaveformAppearance;
-  /**
-   * Show minimal bars when not recording (idle state)
-   * @default true
-   */
-  showIdleState?: boolean;
 }

@@ -45,18 +45,10 @@ export interface LiveStreamingStackRecorderCanvasProps extends HTMLAttributes<HT
   style?: React.CSSProperties;
   /** Waveform appearance configuration (barColor, barWidth 등) */
   appearance?: WaveformAppearance;
-  /**
-   * Show minimal bars when not recording (idle state)
-   * @default false
-   */
-  showIdleState?: boolean;
 }
 
 const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingStackRecorderCanvasProps>(
-  function LiveStreamingStackRecorderCanvas(
-    { className = "", style, appearance, showIdleState = false, ...props },
-    ref
-  ) {
+  function LiveStreamingStackRecorderCanvas({ className = "", style, appearance, ...props }, ref) {
     const { amplitudes, isRecording, isPaused } = useLiveStreamingStackRecorderContext();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const animationRef = useRef<number | null>(null);
@@ -136,27 +128,9 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
           ctx.roundRect(x, y, barWidth, barHeight, barRadius);
         }
         ctx.fill();
-      } else if (showIdleState) {
-        // No data - draw idle state (minimal bars)
-        canvas.width = containerWidth * dpr;
-        canvas.height = containerHeight * dpr;
-        ctx.scale(dpr, dpr);
-
-        ctx.clearRect(0, 0, containerWidth, containerHeight);
-
-        ctx.fillStyle = barColor;
-        const minBarHeight = 2;
-        const barCount = Math.floor((containerWidth + barGap) / totalBarWidth);
-
-        ctx.beginPath();
-        for (let i = 0; i < barCount; i++) {
-          const x = i * totalBarWidth;
-          const y = (containerHeight - minBarHeight) / 2;
-          ctx.roundRect(x, y, barWidth, minBarHeight, barRadius);
-        }
-        ctx.fill();
       }
-    }, [amplitudes, isRecording, appearance, showIdleState]);
+      // 녹음 중이 아니고 데이터도 없으면 아무것도 그리지 않음
+    }, [amplitudes, isRecording, appearance]);
 
     // Track container size with ResizeObserver (크기를 캐싱하여 매 프레임 reflow 방지)
     useEffect(() => {

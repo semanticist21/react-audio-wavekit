@@ -75,11 +75,6 @@ export interface LiveStreamingRecorderCanvasProps extends HTMLAttributes<HTMLCan
   /** Waveform appearance configuration (barColor, barWidth 등) */
   appearance?: WaveformAppearance;
   /**
-   * Show minimal bars when not recording (idle state)
-   * @default false
-   */
-  showIdleState?: boolean;
-  /**
    * Allow canvas width to grow beyond container (enables scrolling)
    * - true: Canvas grows horizontally as recording continues (Voice Memos style)
    * - false: Canvas stays fixed width, bars get compressed
@@ -89,10 +84,7 @@ export interface LiveStreamingRecorderCanvasProps extends HTMLAttributes<HTMLCan
 }
 
 const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingRecorderCanvasProps>(
-  function LiveStreamingRecorderCanvas(
-    { className = "", style, appearance, showIdleState = false, growWidth = true, ...props },
-    ref
-  ) {
+  function LiveStreamingRecorderCanvas({ className = "", style, appearance, growWidth = true, ...props }, ref) {
     const { amplitudes, isRecording, isPaused } = useLiveStreamingRecorderContext();
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -209,28 +201,9 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
         }
 
         ctx.fill();
-      } else if (showIdleState) {
-        // No data - draw idle state (minimal bars)
-        canvas.style.width = "100%";
-        canvas.width = containerWidth * dpr;
-        canvas.height = containerHeight * dpr;
-        ctx.scale(dpr, dpr);
-
-        ctx.clearRect(0, 0, containerWidth, containerHeight);
-
-        ctx.fillStyle = barColor;
-        const minBarHeight = 2;
-        const barCount = Math.floor((containerWidth + barGap) / totalBarWidth);
-
-        ctx.beginPath();
-        for (let i = 0; i < barCount; i++) {
-          const x = i * totalBarWidth;
-          const y = (containerHeight - minBarHeight) / 2;
-          ctx.roundRect(x, y, barWidth, minBarHeight, barRadius);
-        }
-        ctx.fill();
       }
-    }, [amplitudes, isRecording, appearance, showIdleState, growWidth]);
+      // 녹음 중이 아니고 데이터도 없으면 아무것도 그리지 않음
+    }, [amplitudes, isRecording, appearance, growWidth]);
 
     // Track container size with ResizeObserver and get parent container reference
     useEffect(() => {
