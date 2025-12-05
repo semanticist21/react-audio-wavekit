@@ -217,7 +217,7 @@ export const Default: Story = {
   parameters: {
     docs: {
       source: {
-        code: `import { LiveRecorder, useAudioRecorder } from "react-audio-waveform";
+        code: `import { LiveRecorder, useAudioRecorder } from "react-audio-wavekit";
 
 function LiveRecorderPlayer() {
   const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
@@ -291,7 +291,7 @@ export const WithPlay: StoryObj<typeof LiveRecorderPlayerWithPlay> = {
     docs: {
       source: {
         code: `import { useEffect, useRef } from "react";
-import { LiveRecorder, useAudioRecorder } from "react-audio-waveform";
+import { LiveRecorder, useAudioRecorder } from "react-audio-wavekit";
 
 function LiveRecorderPlayerWithPlay() {
   const {
@@ -378,7 +378,7 @@ export const CustomAppearance: StoryObj<typeof LiveRecorderPlayerCustomAppearanc
   parameters: {
     docs: {
       source: {
-        code: `import { LiveRecorder, useAudioRecorder } from "react-audio-waveform";
+        code: `import { LiveRecorder, useAudioRecorder } from "react-audio-wavekit";
 
 function LiveRecorderPlayerCustomAppearance() {
   const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =

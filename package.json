@@ -1,5 +1,5 @@
 {
-  "name": "react-audio-waveform",
+  "name": "react-audio-wavekit",
   "version": "0.1.0",
   "license": "CC0-1.0",
   "type": "module",
@@ -16,7 +16,7 @@
         "default": "./dist/index.js"
       },
       "require": {
-        "types": "./dist/index.d.cts",
+        "types": "./dist/index.d.ts",
         "default": "./dist/index.cjs"
       }
     }

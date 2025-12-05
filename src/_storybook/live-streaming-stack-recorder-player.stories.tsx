@@ -49,9 +49,7 @@ function LiveStreamingStackRecorderPlayer() {
         </button>
 
         {/* Fixed width waveform (bars compress as recording grows) */}
-        <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 bg-slate-100 rounded-sm">
-          <LiveStreamingStackRecorder.Canvas className="text-slate-600" />
-        </LiveStreamingStackRecorder.Root>
+        <LiveStreamingStackRecorder mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100" />
 
         {/* Stop button */}
         <button
@@ -83,7 +81,7 @@ export const Default: Story = {
   parameters: {
     docs: {
       source: {
-        code: `import { LiveStreamingStackRecorder, useAudioRecorder } from "react-audio-waveform";
+        code: `import { LiveStreamingStackRecorder, useAudioRecorder } from "react-audio-wavekit";
 
 function LiveStreamingStackRecorderPlayer() {
   const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
@@ -131,9 +129,9 @@ function LiveStreamingStackRecorderPlayer() {
         </button>
 
         {/* Fixed width waveform (bars compress as recording grows) */}
-        <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100">
-          <LiveStreamingStackRecorder.Canvas className="text-slate-600" />
-        </LiveStreamingStackRecorder.Root>
+        <LiveStreamingStackRecorder mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100" />
+          
+        
 
         {/* Stop button */}
         <button
@@ -206,9 +204,7 @@ function LiveStreamingStackRecorderPlayerWithPlay() {
           )}
         </button>
 
-        <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100">
-          <LiveStreamingStackRecorder.Canvas />
-        </LiveStreamingStackRecorder.Root>
+        <LiveStreamingStackRecorder mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100" />
 
         <button
           type="button"
@@ -238,7 +234,7 @@ export const WithPlay: StoryObj<typeof LiveStreamingStackRecorderPlayerWithPlay>
     docs: {
       source: {
         code: `import { useEffect, useRef } from "react";
-import { LiveStreamingStackRecorder, useAudioRecorder } from "react-audio-waveform";
+import { LiveStreamingStackRecorder, useAudioRecorder } from "react-audio-wavekit";
 
 function LiveStreamingStackRecorderPlayerWithPlay() {
   const {
@@ -293,9 +289,9 @@ function LiveStreamingStackRecorderPlayerWithPlay() {
           )}
         </button>
 
-        <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100">
-          <LiveStreamingStackRecorder.Canvas />
-        </LiveStreamingStackRecorder.Root>
+        <LiveStreamingStackRecorder mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100" />
+          
+        
 
         <button
           type="button"
@@ -378,9 +374,7 @@ function LiveStreamingStackRecorderPlayerWithDownload() {
           )}
         </button>
 
-        <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100">
-          <LiveStreamingStackRecorder.Canvas className="text-slate-600" />
-        </LiveStreamingStackRecorder.Root>
+        <LiveStreamingStackRecorder mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100" />
 
         <button
           type="button"
@@ -414,7 +408,7 @@ export const WithDownload: StoryObj<typeof LiveStreamingStackRecorderPlayerWithD
   parameters: {
     docs: {
       source: {
-        code: `import { LiveStreamingStackRecorder, useAudioRecorder } from "react-audio-waveform";
+        code: `import { LiveStreamingStackRecorder, useAudioRecorder } from "react-audio-wavekit";
 
 function LiveStreamingStackRecorderPlayerWithDownload() {
   const {
@@ -472,9 +466,9 @@ function LiveStreamingStackRecorderPlayerWithDownload() {
           )}
         </button>
 
-        <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100">
-          <LiveStreamingStackRecorder.Canvas className="text-slate-600" />
-        </LiveStreamingStackRecorder.Root>
+        <LiveStreamingStackRecorder mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100" />
+          
+        
 
         <button
           type="button"

@@ -244,7 +244,7 @@ export const Simple: Story = {
     layout: "fullscreen",
     docs: {
       source: {
-        code: `import { AudioWaveform } from "react-audio-waveform";
+        code: `import { AudioWaveform } from "react-audio-wavekit";
 
 <AudioWaveform blob={audioBlob} style={{ width: 800, height: 128 }} />`,
       },
@@ -257,7 +257,7 @@ export const Default: Story = {
     docs: {
       source: {
         code: `import { useEffect, useRef, useState } from "react";
-import { AudioWaveform } from "react-audio-waveform";
+import { AudioWaveform } from "react-audio-wavekit";
 
 function AudioWaveformPlayer() {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);

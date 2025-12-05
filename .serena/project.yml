@@ -80,5 +80,5 @@ excluded_tools: []
 # (contrary to the memories, which are loaded on demand).
 initial_prompt: ""
 
-project_name: "react-audio-waveform"
+project_name: "react-audio-wavekit"
 included_optional_tools: []

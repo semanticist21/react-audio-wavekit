@@ -1,50 +1,10 @@
-// ============================================================================
 // Types
-// ============================================================================
 
-export { DEFAULT_PLAYHEAD_APPEARANCE, DEFAULT_SCROLLBAR_APPEARANCE, DEFAULT_WAVEFORM_APPEARANCE } from "./constants.js";
-export type {
-  AudioWaveformAppearance,
-  LiveStreamingRecorderAppearance,
-  ScrollbarAppearance,
-  WaveformAppearance,
-} from "./types.js";
-
-// ============================================================================
-// Headless Hooks
-// ============================================================================
-
-export type { UseAudioRecorderConfig, UseAudioRecorderReturn } from "./recorder/use-audio-recorder.js";
-// Audio recorder hook
-export { useAudioRecorder } from "./recorder/use-audio-recorder.js";
-
-// ============================================================================
-// Compound Components
-// ============================================================================
-
-export type { LiveRecorderProps, LiveRecorderRef } from "./recorder/live-recorder/index.js";
-// LiveRecorder component (real-time frequency bars)
 export { LiveRecorder } from "./recorder/live-recorder/index.js";
-export type { LiveRecorderProviderProps } from "./recorder/live-recorder/live-recorder-context.js";
-// LiveRecorder context
-export { LiveRecorderProvider, useLiveRecorderContext } from "./recorder/live-recorder/live-recorder-context.js";
-export type {
-  LiveStreamingRecorderCanvasProps,
-  LiveStreamingRecorderRootProps,
-} from "./recorder/live-streaming/recorder/recorder-compound.js";
-// LiveStreamingRecorder compound component (scrolling timeline)
 export { LiveStreamingRecorder } from "./recorder/live-streaming/recorder/recorder-compound.js";
-export type {
-  LiveStreamingStackRecorderCanvasProps,
-  LiveStreamingStackRecorderRootProps,
-} from "./recorder/live-streaming/stack-recorder/stack-recorder-compound.js";
-// LiveStreamingStackRecorder compound component (fixed width, bars compress)
 export { LiveStreamingStackRecorder } from "./recorder/live-streaming/stack-recorder/stack-recorder-compound.js";
-
-// ============================================================================
-// Static Waveform
-// ============================================================================
-
-export type { AudioWaveformProps, AudioWaveformRef } from "./waveform/index.js";
-// AudioWaveform component
+// Hook
+export { useAudioRecorder } from "./recorder/use-audio-recorder.js";
+export type { AudioWaveformAppearance, ScrollbarAppearance, WaveformAppearance } from "./types.js";
+// Components
 export { AudioWaveform } from "./waveform/index.js";

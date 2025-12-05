@@ -1,55 +1,31 @@
-import { forwardRef, type HTMLAttributes, type ReactNode, useCallback, useEffect, useRef } from "react";
+import { forwardRef, useCallback, useEffect, useRef } from "react";
 import { DEFAULT_WAVEFORM_APPEARANCE } from "../../../constants";
 import type { WaveformAppearance } from "../../../types";
-import type { UseRecordingAmplitudesOptions } from "../use-recording-amplitudes";
-import { LiveStreamingStackRecorderProvider, useLiveStreamingStackRecorderContext } from "./stack-recorder-context";
+import { type UseRecordingAmplitudesOptions, useRecordingAmplitudes } from "../use-recording-amplitudes";
 
 // ============================================================================
-// LiveStreamingStackRecorder.Root
+// LiveStreamingStackRecorder - 고정 너비 waveform (녹음이 길어지면 바가 압축됨)
 // ============================================================================
 
-export interface LiveStreamingStackRecorderRootProps
+export interface LiveStreamingStackRecorderProps
   extends UseRecordingAmplitudesOptions,
-    Omit<HTMLAttributes<HTMLDivElement>, "children"> {
-  children: ReactNode | ((value: ReturnType<typeof useLiveStreamingStackRecorderContext>) => ReactNode);
-}
-
-const LiveStreamingStackRecorderRoot = forwardRef<HTMLDivElement, LiveStreamingStackRecorderRootProps>(
-  function LiveStreamingStackRecorderRoot(
-    { children, className = "", style, mediaRecorder, fftSize, smoothingTimeConstant, sampleInterval, ...props },
-    ref
-  ) {
-    return (
-      <div ref={ref} className={className} style={style} {...props}>
-        <LiveStreamingStackRecorderProvider
-          mediaRecorder={mediaRecorder}
-          fftSize={fftSize}
-          smoothingTimeConstant={smoothingTimeConstant}
-          sampleInterval={sampleInterval}
-        >
-          {children}
-        </LiveStreamingStackRecorderProvider>
-      </div>
-    );
-  }
-);
-
-// ============================================================================
-// LiveStreamingStackRecorder.Canvas
-// ============================================================================
-
-export interface LiveStreamingStackRecorderCanvasProps extends HTMLAttributes<HTMLCanvasElement> {
-  /** Additional className for canvas element */
-  className?: string;
-  /** Inline styles for canvas element */
-  style?: React.CSSProperties;
+    Omit<React.CanvasHTMLAttributes<HTMLCanvasElement>, "children"> {
   /** Waveform appearance configuration (barColor, barWidth, etc.) */
   appearance?: WaveformAppearance;
 }
 
-const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingStackRecorderCanvasProps>(
-  function LiveStreamingStackRecorderCanvas({ className = "", style, appearance, ...props }, ref) {
-    const { amplitudes, isRecording, isPaused } = useLiveStreamingStackRecorderContext();
+export const LiveStreamingStackRecorder = forwardRef<HTMLCanvasElement, LiveStreamingStackRecorderProps>(
+  function LiveStreamingStackRecorder(
+    { mediaRecorder, fftSize, smoothingTimeConstant, sampleInterval, appearance, className = "", style, ...props },
+    ref
+  ) {
+    const { amplitudes, isRecording, isPaused } = useRecordingAmplitudes({
+      mediaRecorder,
+      fftSize,
+      smoothingTimeConstant,
+      sampleInterval,
+    });
+
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const animationRef = useRef<number | null>(null);
     // Cache canvas size (only update from ResizeObserver, avoid per-frame getBoundingClientRect)
@@ -214,12 +190,3 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
     );
   }
 );
-
-// ============================================================================
-// Compound Component Composition
-// ============================================================================
-
-export const LiveStreamingStackRecorder = Object.assign(LiveStreamingStackRecorderRoot, {
-  Root: LiveStreamingStackRecorderRoot,
-  Canvas: LiveStreamingStackRecorderCanvas,
-});

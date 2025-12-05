@@ -8,22 +8,39 @@ import dts from "vite-plugin-dts";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  plugins: [tailwindcss(), react(), dts({ include: ["src"] })],
+  plugins: [
+    tailwindcss(),
+    react(),
+    dts({
+      include: ["src"],
+      exclude: ["src/_storybook/**"],
+    }),
+  ],
   build: {
+    copyPublicDir: false,
+    minify: false, // 난독화 없이 raw 코드 유지
     lib: {
       entry: resolve(__dirname, "src/index.tsx"),
-      name: "ReactAudioWaveform",
-      fileName: "index",
       formats: ["es", "cjs"],
     },
     rollupOptions: {
-      external: ["react", "react-dom", "react/jsx-runtime"],
-      output: {
-        globals: {
-          react: "React",
-          "react-dom": "ReactDOM",
+      external: ["react", "react-dom", "react/jsx-runtime", "overlayscrollbars", "overlayscrollbars-react"],
+      output: [
+        {
+          format: "es",
+          preserveModules: true,
+          preserveModulesRoot: "src",
+          entryFileNames: "[name].js",
+          exports: "named",
         },
-      },
+        {
+          format: "cjs",
+          preserveModules: true,
+          preserveModulesRoot: "src",
+          entryFileNames: "[name].cjs",
+          exports: "named",
+        },
+      ],
     },
   },
 });

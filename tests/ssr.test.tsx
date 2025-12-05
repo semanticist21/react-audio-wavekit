@@ -46,11 +46,7 @@ describe("SSR Compatibility", () => {
 
   it("LiveStreamingStackRecorder renders without window access errors", () => {
     expect(() => {
-      renderToString(
-        <LiveStreamingStackRecorder.Root mediaRecorder={null}>
-          <LiveStreamingStackRecorder.Canvas />
-        </LiveStreamingStackRecorder.Root>
-      );
+      renderToString(<LiveStreamingStackRecorder mediaRecorder={null} />);
     }).not.toThrow();
   });
 });

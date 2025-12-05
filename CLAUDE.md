@@ -47,8 +47,7 @@ src/
 │   │   │   └── recorder-context.tsx   # Context provider
 │   │   └── stack-recorder/        # Fixed width (bars compress)
 │   │       ├── index.tsx              # Entry point
-│   │       ├── stack-recorder-compound.tsx # LiveStreamingStackRecorder compound API
-│   │       └── stack-recorder-context.tsx  # Context provider
+│   │       └── stack-recorder-compound.tsx # LiveStreamingStackRecorder simple component
 │   ├── use-audio-analyser.ts # Shared Web Audio setup hook
 │   ├── use-audio-recorder.ts # MediaRecorder hook with pause/resume
 │   └── util-mime-type.ts     # Audio MIME type detection
@@ -56,9 +55,9 @@ src/
 ```
 
 **Component Architecture Pattern:**
-- **Simple Components:** Direct prop-based API for easy usage (AudioWaveform)
-- **Compound Components:** Flexible composition API for complex use cases (LiveStreamingRecorder, LiveStreamingStackRecorder)
-- **Headless Hooks (Recommended):** Extract raw data for custom UI implementations
+- **Simple Components:** Direct prop-based API for easy usage (AudioWaveform, LiveStreamingStackRecorder, LiveRecorder)
+- **Compound Components:** Flexible composition API for complex use cases (LiveStreamingRecorder - has Root + Canvas)
+- **Headless Hooks:** `useAudioRecorder` for recording state management (only public hook)
 
 **Build System:**
 - **Build:** Vite 7 library mode with `vite-plugin-dts` for type generation
@@ -84,7 +83,7 @@ src/
 
 **AudioWaveform** - Static waveform visualization with playhead support:
 ```tsx
-import { AudioWaveform } from "react-audio-waveform";
+import { AudioWaveform } from "react-audio-wavekit";
 import { useEffect, useRef, useState } from "react";
 
 function AudioPlayer() {
@@ -160,7 +159,7 @@ function AudioPlayer() {
 
 **LiveStreamingRecorder** - Timeline waveform recording (scrolling, Voice Memos style):
 ```tsx
-import { LiveStreamingRecorder, useAudioRecorder } from "react-audio-waveform";
+import { LiveStreamingRecorder, useAudioRecorder } from "react-audio-wavekit";
 
 function RecorderExample() {
   const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
@@ -199,7 +198,7 @@ function RecorderExample() {
 
 **LiveStreamingStackRecorder** - Fixed width waveform (bars compress as recording grows):
 ```tsx
-import { LiveStreamingStackRecorder, useAudioRecorder } from "react-audio-waveform";
+import { LiveStreamingStackRecorder, useAudioRecorder } from "react-audio-wavekit";
 
 function StackRecorderExample() {
   const { startRecording, stopRecording, mediaRecorder, isRecording } = useAudioRecorder();
@@ -210,10 +209,12 @@ function StackRecorderExample() {
         Record
       </button>
 
-      {/* Fixed width waveform - 녹음이 길어지면 바가 압축됨 */}
-      <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100">
-        <LiveStreamingStackRecorder.Canvas className="text-slate-600" />
-      </LiveStreamingStackRecorder.Root>
+      {/* Fixed width waveform - 녹음이 길어지면 바가 압축됨 (simple component) */}
+      <LiveStreamingStackRecorder
+        mediaRecorder={mediaRecorder}
+        className="h-12 w-72 rounded-sm bg-slate-100"
+        appearance={{ barColor: "#3b82f6", barWidth: 2, barGap: 1 }}
+      />
 
       <button type="button" onClick={stopRecording} disabled={!isRecording}>
         Stop
@@ -225,21 +226,13 @@ function StackRecorderExample() {
 
 ### Headless Hooks
 
-**useAudioRecorder** - Recording state management:
+**useAudioRecorder** - Recording state management (only public hook):
 - Returns: `{ startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, recordingBlob, isRecording, isPaused, recordingTime, error }`
 
-**useAudioWaveform** - Extract waveform data from audio blob:
-- Returns: `{ amplitudes, isLoading, error }`
-
-**useLiveAudioData** - Extract real-time frequency data:
-- Returns: `{ frequencies, volumes, audioContext, analyser, isRecording, isPaused }`
-
-**useRecordingAmplitudes** - Extract timeline amplitude data:
-- Returns: `{ amplitudes, audioContext, analyser, isRecording, isPaused, clearAmplitudes }`
-
-**useAudioAnalyser** - Low-level Web Audio setup (shared internally):
-- Creates AudioContext, AnalyserNode, connects MediaRecorder stream
-- Returns refs for audioContext, analyser, dataArray, bufferLength
+**Internal hooks (not exported):**
+- `useLiveAudioData` - Real-time frequency data for LiveRecorder
+- `useRecordingAmplitudes` - Timeline amplitude data for streaming recorders
+- `useAudioAnalyser` - Low-level Web Audio setup (shared internally)
 
 ## Key Implementation Details
 
