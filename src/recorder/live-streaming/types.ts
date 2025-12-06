@@ -14,6 +14,11 @@ export interface UseRecordingAmplitudesOptions {
   smoothingTimeConstant?: number;
   /** Interval in ms for sampling amplitude data */
   sampleInterval?: number;
+  /**
+   * Amplitude multiplier - lower values produce quieter waveforms
+   * @default 1.5
+   */
+  amplitudeScale?: number;
 }
 
 export interface UseRecordingAmplitudesReturn {

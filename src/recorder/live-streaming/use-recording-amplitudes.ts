@@ -33,7 +33,13 @@ export type { UseRecordingAmplitudesOptions, UseRecordingAmplitudesReturn };
  * ```
  */
 export function useRecordingAmplitudes(options: UseRecordingAmplitudesOptions): UseRecordingAmplitudesReturn {
-  const { mediaRecorder, fftSize = 2048, smoothingTimeConstant = 0.4, sampleInterval = 50 } = options;
+  const {
+    mediaRecorder,
+    fftSize = 2048,
+    smoothingTimeConstant = 0.4,
+    sampleInterval = 50,
+    amplitudeScale = 1.5,
+  } = options;
 
   // External store pattern: Efficient updates without array copying
   const amplitudeDataRef = useRef<number[]>([]);
@@ -104,9 +110,9 @@ export function useRecordingAmplitudes(options: UseRecordingAmplitudesOptions): 
       }
       const rms = Math.sqrt(sum / bufferLength);
 
-      // Store amplitude (0-1 range, slightly amplified)
+      // Store amplitude (0-1 range, scaled by amplitudeScale)
       // Push directly without array copy, then notify subscribers
-      const amplitude = Math.min(1, rms * 2);
+      const amplitude = Math.min(1, rms * amplitudeScale);
       amplitudeDataRef.current.push(amplitude);
       notifyListeners();
     };
@@ -142,7 +148,7 @@ export function useRecordingAmplitudes(options: UseRecordingAmplitudesOptions): 
       mediaRecorder.removeEventListener("resume", handleResume);
       stopSampling();
     };
-  }, [mediaRecorder, sampleInterval, analyserRef, dataArrayRef, bufferLengthRef, notifyListeners]);
+  }, [mediaRecorder, sampleInterval, amplitudeScale, analyserRef, dataArrayRef, bufferLengthRef, notifyListeners]);
 
   return {
     amplitudes,

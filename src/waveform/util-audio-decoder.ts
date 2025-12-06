@@ -2,8 +2,16 @@
 // Audio Decoding Utilities (Common)
 // ============================================================================
 
+import { type IAudioBuffer, decodeAudioData as standardizedDecodeAudioData } from "standardized-audio-context";
+
 export async function decodeAudioBlob(blob: Blob, sampleCount: number): Promise<number[]> {
   const audioContext = new AudioContext();
+
+  // iOS starts AudioContext in suspended state - resume required
+  if (audioContext.state === "suspended") {
+    await audioContext.resume();
+  }
+
   const arrayBuffer = await blob.arrayBuffer();
 
   // Check if blob has data
@@ -12,9 +20,12 @@ export async function decodeAudioBlob(blob: Blob, sampleCount: number): Promise<
     throw new Error("Audio blob is empty");
   }
 
-  let audioBuffer: AudioBuffer;
+  let audioBuffer: IAudioBuffer;
   try {
-    audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    // Use standardized-audio-context for iOS Safari/Chrome compatibility
+    // Safari doesn't support Promise-based decodeAudioData, only callbacks
+    // This library internally converts to callback-based approach
+    audioBuffer = await standardizedDecodeAudioData(audioContext, arrayBuffer);
   } catch {
     await audioContext.close();
     throw new Error(

@@ -26,6 +26,11 @@ export interface LiveRecorderProps extends React.CanvasHTMLAttributes<HTMLCanvas
    * @default true
    */
   showIdleState?: boolean;
+  /**
+   * Amplitude multiplier - lower values produce quieter waveforms
+   * @default 1.5
+   */
+  amplitudeScale?: number;
 }
 
 export interface LiveRecorderRef {
@@ -50,6 +55,7 @@ export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
       fftSize = 2048,
       smoothingTimeConstant = 0.8,
       showIdleState = true,
+      amplitudeScale = 1.5,
       ...props
     },
     ref: ForwardedRef<LiveRecorderRef>
@@ -130,7 +136,8 @@ export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
           const value = dataArray[dataIndex] || 0;
 
           // byte 값(0-255)을 높이로 변환, 128(무음)을 중심으로
-          const amplitude = Math.abs(value - 128) / 128;
+          // amplitudeScale로 진폭 조절 (기본값 1.5, 낮을수록 파형이 낮아짐)
+          const amplitude = Math.min(1, (Math.abs(value - 128) / 128) * amplitudeScale);
           const barHeight = Math.max(2, amplitude * height * barHeightScale);
 
           const x = i * totalBarWidth;
@@ -169,7 +176,7 @@ export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
           animationRef.current = null;
         }
       };
-    }, [mediaRecorder, appearance, analyserRef, dataArrayRef, bufferLengthRef]);
+    }, [mediaRecorder, appearance, amplitudeScale, analyserRef, dataArrayRef, bufferLengthRef]);
 
     // idle 상태 그리기 (녹음 시작 전)
     useEffect(() => {

@@ -69,6 +69,7 @@
   },
   "dependencies": {
     "overlayscrollbars": "^2.13.0",
-    "overlayscrollbars-react": "^0.5.6"
+    "overlayscrollbars-react": "^0.5.6",
+    "standardized-audio-context": "^25.3.77"
   }
 }

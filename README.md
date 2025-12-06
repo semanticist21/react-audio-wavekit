@@ -113,6 +113,7 @@ Scrolling timeline waveform (Voice Memos style). Canvas grows horizontally as re
 | `fftSize` | `number` | `2048` | FFT size for frequency analysis |
 | `smoothingTimeConstant` | `number` | `0.8` | Smoothing constant (0-1) |
 | `sampleInterval` | `number` | `50` | Sample interval in ms |
+| `amplitudeScale` | `number` | `1.5` | Amplitude multiplier (lower = quieter waveform) |
 | `appearance` | `LiveStreamingRecorderAppearance` | - | See [Appearance Options](#appearance-options) |
 
 **Canvas Props:**
@@ -143,6 +144,7 @@ Fixed-width waveform where bars compress as recording grows.
 | `fftSize` | `number` | `2048` | FFT size for frequency analysis |
 | `smoothingTimeConstant` | `number` | `0.8` | Smoothing constant (0-1) |
 | `sampleInterval` | `number` | `50` | Sample interval in ms |
+| `amplitudeScale` | `number` | `1.5` | Amplitude multiplier (lower = quieter waveform) |
 | `appearance` | `WaveformAppearance` | - | See [Appearance Options](#appearance-options) |
 
 ### LiveRecorder
@@ -163,6 +165,7 @@ Real-time frequency bars visualization.
 | `fftSize` | `number` | `2048` | FFT size for frequency analysis |
 | `smoothingTimeConstant` | `number` | `0.8` | Smoothing constant (0-1) |
 | `showIdleState` | `boolean` | `true` | Show minimal bars when not recording |
+| `amplitudeScale` | `number` | `1.5` | Amplitude multiplier (lower = quieter waveform) |
 | `appearance` | `WaveformAppearance` | - | See [Appearance Options](#appearance-options) |
 
 ---
