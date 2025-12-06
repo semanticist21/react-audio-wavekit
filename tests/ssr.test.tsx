@@ -1,6 +1,6 @@
 /**
- * SSR Compatibility Test
- * Verify components render without errors in server environment (no window/document)
+ * SSR 호환성 테스트
+ * 서버 환경(window/document 없음)에서 컴포넌트가 에러 없이 렌더링되는지 확인
  */
 import { renderToString } from "react-dom/server";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -10,11 +10,11 @@ import { LiveStreamingStackRecorder } from "../src/recorder/live-streaming/stack
 import { AudioWaveform } from "../src/waveform";
 
 describe("SSR Compatibility", () => {
-  // Simulate server environment: remove window object
+  // 서버 환경 시뮬레이션: window 객체 제거
   const originalWindow = global.window;
 
   beforeAll(() => {
-    // @ts-expect-error - Simulate server environment
+    // @ts-expect-error - 서버 환경 시뮬레이션
     delete global.window;
   });
 

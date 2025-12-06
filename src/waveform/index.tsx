@@ -27,7 +27,7 @@ export interface AudioWaveformRef {
   canvas: HTMLCanvasElement | null;
 }
 
-// SSR-safe: Use default 500 on server, window.innerWidth on client
+// SSR-safe: 서버에서는 기본값 500, 클라이언트에서는 window.innerWidth 사용
 const getInitialSampleCount = () => {
   if (typeof window === "undefined") return 500;
   return Math.max(500, Math.ceil(window.innerWidth));
@@ -42,8 +42,8 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
   const blobRef = useRef<Blob | null>(null);
   const rendererRef = useRef<WaveformRendererRef>(null);
 
-  // sampleCount: Sample based on screen width for sharp rendering on high-DPI displays
-  // SSR-safe: useMemo only accesses window on client
+  // sampleCount: 화면 너비에 맞춰 샘플링하여 고해상도 디스플레이에서도 선명하게 표시
+  // SSR-safe: useMemo는 클라이언트에서만 window 접근
   const sampleCount = useMemo(() => getInitialSampleCount(), []);
 
   // Forward ref to WaveformRenderer's canvas

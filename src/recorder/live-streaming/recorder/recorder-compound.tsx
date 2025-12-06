@@ -34,23 +34,23 @@ const LiveStreamingRecorderRoot = forwardRef<HTMLDivElement, LiveStreamingRecord
   ) {
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Generate unique scrollbar theme class name (prevent style conflicts between instances)
+    // 고유한 scrollbar 테마 클래스명 생성 (인스턴스별 스타일 충돌 방지)
     const uniqueId = useId().replace(/:/g, "");
     const themeClassName = `os-theme-lsr-${uniqueId}`;
 
-    // Extract scrollbar appearance values
+    // Scrollbar appearance 값 추출
     const scrollbar = appearance?.scrollbar;
     const thumbColor = scrollbar?.thumbColor ?? DEFAULT_SCROLLBAR_APPEARANCE.thumbColor;
     const hidden = scrollbar?.hidden ?? DEFAULT_SCROLLBAR_APPEARANCE.hidden;
 
-    // Initialize OverlayScrollbars hook
+    // OverlayScrollbars 훅 초기화
     const [initializeOS, osInstance] = useOverlayScrollbars({
       options: {
         overflow: { x: "scroll", y: "hidden" },
         scrollbars: {
           theme: themeClassName,
           visibility: hidden ? "hidden" : "auto",
-          autoHide: "leave", // Hide when mouse leaves (common UX pattern)
+          autoHide: "leave", // 마우스가 영역을 벗어나면 숨김 (가장 대중적인 UX)
           autoHideDelay: 400,
           dragScroll: true,
           clickScroll: true,
@@ -59,14 +59,14 @@ const LiveStreamingRecorderRoot = forwardRef<HTMLDivElement, LiveStreamingRecord
       defer: true,
     });
 
-    // Initialize OverlayScrollbars
+    // OverlayScrollbars 초기화
     useEffect(() => {
       if (containerRef.current) {
         initializeOS(containerRef.current);
       }
     }, [initializeOS]);
 
-    // Update when hidden option changes
+    // hidden 옵션 변경 시 업데이트
     useEffect(() => {
       const instance = osInstance();
       if (instance) {
@@ -78,7 +78,7 @@ const LiveStreamingRecorderRoot = forwardRef<HTMLDivElement, LiveStreamingRecord
       }
     }, [osInstance, hidden]);
 
-    // Inject OverlayScrollbars theme CSS variables (only thumbColor is custom, rest are fixed)
+    // OverlayScrollbars 테마 CSS 변수 주입 (thumbColor만 커스텀, 나머지는 고정값)
     useEffect(() => {
       const styleId = `lsr-os-theme-${uniqueId}`;
       document.getElementById(styleId)?.remove();
@@ -107,7 +107,7 @@ const LiveStreamingRecorderRoot = forwardRef<HTMLDivElement, LiveStreamingRecord
       };
     }, [uniqueId, themeClassName, thumbColor]);
 
-    // Forward ref
+    // ref 포워딩
     useEffect(() => {
       if (ref) {
         if (typeof ref === "function") {
@@ -142,7 +142,7 @@ export interface LiveStreamingRecorderCanvasProps extends HTMLAttributes<HTMLCan
   className?: string;
   /** Inline styles for canvas element */
   style?: React.CSSProperties;
-  /** Waveform appearance configuration (barColor, barWidth, etc.) - scrollbar settings only apply on Root */
+  /** Waveform appearance configuration (barColor, barWidth, etc.) - scrollbar 설정은 Root에서만 유효 */
   appearance?: LiveStreamingRecorderAppearance;
 }
 
@@ -203,10 +203,10 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
       // When recording or data exists
       if (isRecording || amplitudes.length > 0) {
         // Canvas grows with data (enables scrolling, Voice Memos style)
-        // Canvas width grows with recording data → enables scrolling
+        // 녹음 데이터에 따라 캔버스 너비가 늘어남 → 스크롤 가능
         const requiredWidth = amplitudes.length * totalBarWidth;
         const calculatedWidth = amplitudes.length > 0 ? requiredWidth : containerWidth;
-        // Canvas width never shrinks (ensures stability during pause/resume)
+        // 캔버스 너비는 절대 줄어들지 않음 (pause/resume 시 안정성 보장)
         const canvasWidth = Math.max(calculatedWidth, prevCanvasWidthRef.current);
         prevCanvasWidthRef.current = canvasWidth;
         canvas.style.width = `${canvasWidth}px`;
@@ -221,7 +221,7 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
         // Set bar color
         ctx.fillStyle = barColor;
 
-        // Draw bars - 1:1 mapping (one bar per amplitude)
+        // Draw bars - 1:1 매핑 (amplitude 하나당 bar 하나)
         const minBarHeight = 2;
         ctx.beginPath();
 
@@ -245,14 +245,14 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
       const canvas = canvasRef.current;
       if (!canvas) return;
 
-      // Find the viewport element created by OverlayScrollbars (.os-viewport class)
-      // Structure: Root > .os-viewport (actual scroll container) > .os-content > canvas
+      // OverlayScrollbars가 생성한 viewport 요소 찾기 (.os-viewport 클래스)
+      // 구조: Root > .os-viewport (실제 스크롤 컨테이너) > .os-content > canvas
       const osContent = canvas.parentElement;
       const osViewport = osContent?.parentElement;
       if (osViewport?.classList.contains("os-viewport")) {
         containerRef.current = osViewport;
       } else {
-        // Fallback: Before OverlayScrollbars initialization or different structure
+        // Fallback: OverlayScrollbars 초기화 전이거나 다른 구조일 경우
         containerRef.current = canvas.parentElement;
       }
 

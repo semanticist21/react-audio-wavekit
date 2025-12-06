@@ -12,22 +12,21 @@ export async function decodeAudioBlob(blob: Blob, sampleCount: number): Promise<
     throw new Error("Audio blob is empty");
   }
 
-  // Cross-browser audio decoding best practice:
-  // Use OfflineAudioContext from standardized-audio-context library
-  // - OfflineAudioContext: No user gesture required, no autoplay policy restrictions
-  // - standardized-audio-context: Fixes Safari/iOS bugs (Promise rejection with null,
-  //   callback-only API on older versions)
-  // - Call decodeAudioData method directly on the context instance
-  //   (standalone decodeAudioData function only works with AudioContext, not OfflineAudioContext)
-  const offlineContext = new OfflineAudioContext({ numberOfChannels: 1, length: 1, sampleRate: 44100 });
+  // OfflineAudioContext를 사용하면 사용자 제스처 없이도 디코딩 가능
+  // AudioContext와 달리 실제 오디오 출력이 없어서 Autoplay Policy 제약을 받지 않음
+  // standardized-audio-context 사용: Safari/iOS의 decodeAudioData 버그 fix
+  // (Safari는 Promise 기반 문법 미지원, null로 reject하는 버그 있음)
+  const offlineContext = new OfflineAudioContext({ length: 1, sampleRate: 44100 });
 
-  // Use arrayBuffer.slice(0) to create a copy, preventing ArrayBuffer detachment issues
-  const audioBuffer = await offlineContext.decodeAudioData(arrayBuffer.slice(0)).catch(() => {
+  let audioBuffer: AudioBuffer;
+  try {
+    audioBuffer = await offlineContext.decodeAudioData(arrayBuffer);
+  } catch {
     throw new Error(
       `Unable to decode audio data (type: ${blob.type}, size: ${blob.size} bytes). ` +
         `This may be due to an unsupported audio format or corrupted data.`
     );
-  });
+  }
 
   const channelData = audioBuffer.getChannelData(0);
   const blockSize = Math.floor(channelData.length / sampleCount);
