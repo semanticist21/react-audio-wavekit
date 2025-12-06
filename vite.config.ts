@@ -19,7 +19,7 @@ export default defineConfig({
   ],
   build: {
     copyPublicDir: false,
-    minify: false, // 난독화 없이 raw 코드 유지
+    minify: false, // Keep raw code without obfuscation
     lib: {
       entry: resolve(__dirname, "src/index.tsx"),
       formats: ["es", "cjs"],
