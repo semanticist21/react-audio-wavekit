@@ -2,32 +2,23 @@
 // Audio Decoding Utilities (Common)
 // ============================================================================
 
-import { type IAudioBuffer, decodeAudioData as standardizedDecodeAudioData } from "standardized-audio-context";
-
 export async function decodeAudioBlob(blob: Blob, sampleCount: number): Promise<number[]> {
-  const audioContext = new AudioContext();
-
-  // iOS starts AudioContext in suspended state - resume required
-  if (audioContext.state === "suspended") {
-    await audioContext.resume();
-  }
-
   const arrayBuffer = await blob.arrayBuffer();
 
   // Check if blob has data
   if (arrayBuffer.byteLength === 0) {
-    await audioContext.close();
     throw new Error("Audio blob is empty");
   }
 
-  let audioBuffer: IAudioBuffer;
+  // OfflineAudioContext를 사용하면 사용자 제스처 없이도 디코딩 가능
+  // AudioContext와 달리 실제 오디오 출력이 없어서 Autoplay Policy 제약을 받지 않음
+  // 초기 파라미터는 임시값 (디코딩 후 실제 값으로 대체됨)
+  const offlineContext = new OfflineAudioContext(1, 1, 44100);
+
+  let audioBuffer: AudioBuffer;
   try {
-    // Use standardized-audio-context for iOS Safari/Chrome compatibility
-    // Safari doesn't support Promise-based decodeAudioData, only callbacks
-    // This library internally converts to callback-based approach
-    audioBuffer = await standardizedDecodeAudioData(audioContext, arrayBuffer);
+    audioBuffer = await offlineContext.decodeAudioData(arrayBuffer);
   } catch {
-    await audioContext.close();
     throw new Error(
       `Unable to decode audio data (type: ${blob.type}, size: ${blob.size} bytes). ` +
         `This may be due to an unsupported audio format or corrupted data.`
@@ -49,8 +40,6 @@ export async function decodeAudioBlob(blob: Blob, sampleCount: number): Promise<
 
   const maxPeak = Math.max(...peaks);
   const normalizedPeaks = maxPeak > 0 ? peaks.map((p) => p / maxPeak) : peaks;
-
-  await audioContext.close();
 
   return normalizedPeaks;
 }
