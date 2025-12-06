@@ -9,8 +9,10 @@ import { WaveformRenderer, type WaveformRendererRef } from "./waveform-renderer"
 // ============================================================================
 
 export interface AudioWaveformProps extends React.CanvasHTMLAttributes<HTMLCanvasElement> {
-  /** Audio blob to visualize */
-  blob: Blob | null;
+  /** Audio blob to visualize (provide either blob or peaks) */
+  blob?: Blob | null;
+  /** Pre-computed peaks data (normalized 0-1 range, skips decoding when provided) */
+  peaks?: number[];
   /** Waveform appearance configuration (barColor, barWidth, playheadColor, etc.) */
   appearance?: AudioWaveformAppearance;
   /** Enable Suspense mode (requires Suspense boundary in parent) */
@@ -27,23 +29,22 @@ export interface AudioWaveformRef {
   canvas: HTMLCanvasElement | null;
 }
 
-// SSR-safe: 서버에서는 기본값 500, 클라이언트에서는 window.innerWidth 사용
+// SSR-safe: returns 500 on server, window.innerWidth on client
 const getInitialSampleCount = () => {
   if (typeof window === "undefined") return 500;
   return Math.max(500, Math.ceil(window.innerWidth));
 };
 
 export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(function AudioWaveform(
-  { blob, appearance, suspense = false, currentTime, duration, onSeek, ...props },
+  { blob, peaks: precomputedPeaks, appearance, suspense = false, currentTime, duration, onSeek, ...props },
   ref
 ) {
-  const [peaks, setPeaks] = useState<number[] | null>(null);
+  const [decodedPeaks, setDecodedPeaks] = useState<number[] | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const blobRef = useRef<Blob | null>(null);
   const rendererRef = useRef<WaveformRendererRef>(null);
 
-  // sampleCount: 화면 너비에 맞춰 샘플링하여 고해상도 디스플레이에서도 선명하게 표시
-  // SSR-safe: useMemo는 클라이언트에서만 window 접근
+  // Sample count based on screen width for sharp rendering on high-DPI displays
   const sampleCount = useMemo(() => getInitialSampleCount(), []);
 
   // Forward ref to WaveformRenderer's canvas
@@ -55,17 +56,21 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
     }
   }, [ref]);
 
+  // Skip decoding when pre-computed peaks are provided
+  const shouldDecode = !precomputedPeaks && blob;
+
   // Suspense mode: Use React 19-style Promise unwrapping
-  const suspensePeaks = blob && suspense ? unwrapPromise(getAudioData(blob, sampleCount)) : null;
+  const suspensePeaks = shouldDecode && suspense ? unwrapPromise(getAudioData(blob, sampleCount)) : null;
 
   // Non-suspense mode: Decode audio when blob changes
   useEffect(() => {
-    if (suspense) return; // Skip state management in suspense mode
-
-    if (!blob) {
-      setPeaks(null);
-      setError(null);
-      blobRef.current = null;
+    if (!shouldDecode || suspense) {
+      // Reset state when using peaks prop or in suspense mode
+      if (!shouldDecode) {
+        setDecodedPeaks(null);
+        setError(null);
+        blobRef.current = null;
+      }
       return;
     }
 
@@ -79,7 +84,7 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
     decodeAudioBlob(blob, sampleCount)
       .then((data) => {
         if (!cancelled) {
-          setPeaks(data);
+          setDecodedPeaks(data);
         }
       })
       .catch((err) => {
@@ -91,13 +96,14 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
     return () => {
       cancelled = true;
     };
-  }, [blob, sampleCount, suspense]);
+  }, [blob, sampleCount, suspense, shouldDecode]);
 
   if (!suspense && error) {
     throw error;
   }
 
-  const finalPeaks = suspense ? suspensePeaks : peaks;
+  // Priority: precomputedPeaks > suspensePeaks > decodedPeaks
+  const finalPeaks = precomputedPeaks ?? (suspense ? suspensePeaks : decodedPeaks);
 
   return (
     <WaveformRenderer

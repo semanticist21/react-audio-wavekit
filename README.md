@@ -6,6 +6,7 @@ React components for audio waveform visualization and live recording.
 
 - **Full TypeScript** - Complete type safety with detailed type definitions
 - **Easy to Use** - Simple API with sensible defaults, works out of the box
+- **Mobile Compatible** - WASM fallback decoder for reliable mobile browser support
 - **Headless Hooks** - Full control with raw audio data for custom implementations
 - **SSR Safe** - Compatible with Next.js and other SSR frameworks
 
@@ -46,7 +47,8 @@ Static waveform visualization with playhead and click-to-seek.
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `blob` | `Blob \| null` | - | Audio blob to visualize (required) |
+| `blob` | `Blob \| null` | - | Audio blob to visualize |
+| `peaks` | `number[]` | - | Pre-computed peaks (0-1 range, skips decoding) |
 | `currentTime` | `number` | - | Current playback time in seconds |
 | `duration` | `number` | - | Total audio duration in seconds |
 | `onSeek` | `(time: number) => void` | - | Callback when user clicks on waveform |

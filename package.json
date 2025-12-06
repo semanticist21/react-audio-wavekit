@@ -68,6 +68,7 @@
     "vitest": "^4.0.15"
   },
   "dependencies": {
+    "mpg123-decoder": "^1.0.3",
     "overlayscrollbars": "^2.13.0",
     "overlayscrollbars-react": "^0.5.6"
   }
