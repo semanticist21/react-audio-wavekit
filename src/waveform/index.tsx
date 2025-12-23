@@ -83,8 +83,7 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
   const shouldDecode = !precomputedPeaks && blob;
 
   // Suspense mode: Use React 19-style Promise unwrapping
-  const suspensePeaks =
-    shouldDecode && suspense && isMounted ? unwrapPromise(getAudioData(blob, sampleCount)) : null;
+  const suspensePeaks = shouldDecode && suspense && isMounted ? unwrapPromise(getAudioData(blob, sampleCount)) : null;
 
   // Non-suspense mode: Decode audio when blob changes
   useEffect(() => {
