@@ -71,7 +71,9 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
     const barHeightScale = appearance?.barHeightScale ?? DEFAULT_WAVEFORM_APPEARANCE.barHeightScale;
 
     const totalBarWidth = barWidth + barGap;
+    if (totalBarWidth <= 0) return;
     const barsCount = Math.floor(width / totalBarWidth);
+    if (barsCount <= 0) return;
     const step = peaks.length / barsCount;
 
     ctx.fillStyle = barColor;
@@ -194,17 +196,19 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
     [duration, onSeekStart, onSeekDrag, onSeekEnd, getTimeFromPosition]
   );
 
+  const isDragEnabled = !!onSeekStart || !!onSeekDrag || !!onSeekEnd;
+
   // Click handler for simple seeking (only when not dragging)
   const handleClick = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       // Skip if drag-to-seek is enabled (handled by mouse events)
-      if (onSeekStart || onSeekDrag || onSeekEnd) return;
-      if (!onSeek || !duration || duration <= 0) return;
-
-      const time = getTimeFromPosition(e.clientX);
-      onSeek(time);
+      if (!isDragEnabled && onSeek && duration && duration > 0) {
+        const time = getTimeFromPosition(e.clientX);
+        onSeek(time);
+      }
+      onClick?.(e);
     },
-    [onSeek, duration, onSeekStart, onSeekDrag, onSeekEnd, getTimeFromPosition]
+    [onSeek, duration, isDragEnabled, getTimeFromPosition, onClick]
   );
 
   // Keyboard handler: Arrow keys seek 5s, Home/End jump to start/end
@@ -249,7 +253,6 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
 
   // Interactive when any seek callback is provided
   const isInteractive = (!!onSeek || !!onSeekStart || !!onSeekDrag || !!onSeekEnd) && !!duration && duration > 0;
-  const isDragEnabled = !!onSeekStart || !!onSeekDrag || !!onSeekEnd;
 
   return (
     <canvas

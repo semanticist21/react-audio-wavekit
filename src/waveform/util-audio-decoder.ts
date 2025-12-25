@@ -9,10 +9,15 @@ import { MPEGDecoder } from "mpg123-decoder";
  * Extract peaks from Float32Array channel data
  */
 function extractPeaksFromChannelData(channelData: Float32Array, sampleCount: number): number[] {
-  const blockSize = Math.floor(channelData.length / sampleCount);
+  if (channelData.length === 0 || sampleCount <= 0) {
+    return [];
+  }
+
+  const normalizedSampleCount = Math.min(sampleCount, channelData.length);
+  const blockSize = Math.max(1, Math.floor(channelData.length / normalizedSampleCount));
   const peaks: number[] = [];
 
-  for (let i = 0; i < sampleCount; i++) {
+  for (let i = 0; i < normalizedSampleCount; i++) {
     const start = i * blockSize;
     let sum = 0;
     for (let j = 0; j < blockSize; j++) {
@@ -22,6 +27,7 @@ function extractPeaksFromChannelData(channelData: Float32Array, sampleCount: num
   }
 
   // Normalize to 0-1 range
+  if (peaks.length === 0) return [];
   const maxPeak = Math.max(...peaks);
   return maxPeak > 0 ? peaks.map((p) => p / maxPeak) : peaks;
 }
@@ -46,6 +52,10 @@ async function decodeWithWASM(arrayBuffer: ArrayBuffer): Promise<Float32Array> {
 
   // Use first channel (works for both stereo and mono)
   const channelData = result.channelData[0];
+  if (!channelData) {
+    decoder.free();
+    throw new Error("WASM decoder returned no channel data");
+  }
 
   decoder.free();
 
@@ -70,12 +80,16 @@ export async function decodeAudioBlob(blob: Blob, sampleCount: number): Promise<
 
   // WASM decoder fallback
   try {
+    if (blob.type && !/mp3|mpeg/i.test(blob.type)) {
+      throw new Error("WASM decoder only supports MP3 audio");
+    }
     const channelData = await decodeWithWASM(arrayBuffer);
     return extractPeaksFromChannelData(channelData, sampleCount);
   } catch {
     throw new Error(
       `Unable to decode audio data (type: ${blob.type}, size: ${blob.size} bytes). ` +
         `Both native Web Audio API and WASM decoder failed. ` +
+        `The WASM fallback only supports MP3 audio. ` +
         `Consider providing pre-decoded 'peaks' to the AudioWaveform component to bypass decoding.`
     );
   }
