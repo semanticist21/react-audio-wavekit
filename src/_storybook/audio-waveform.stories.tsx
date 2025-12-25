@@ -138,7 +138,7 @@ function AudioWaveformPlayer() {
 
   return (
     <div className="flex h-screen w-full items-center justify-center bg-linear-to-br from-slate-900 to-slate-800 p-8">
-      <div className="flex w-full max-w-3xl flex-col gap-6 rounded-3xl bg-linear-to-br from-slate-800 to-slate-900 p-8 shadow-2xl ring-1 ring-slate-700/50">
+      <div className="relative flex w-full max-w-3xl flex-col gap-6 rounded-3xl bg-linear-to-br from-slate-800 to-slate-900 p-8 shadow-2xl ring-1 ring-slate-700/50">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -179,7 +179,11 @@ function AudioWaveformPlayer() {
         />
 
         {/* Seeking indicator */}
-        {isSeeking && <div className="text-center text-sm text-slate-400">Seeking... {formatTime(currentTime)}</div>}
+        {isSeeking && (
+          <div className="pointer-events-none absolute inset-x-0 top-28 text-center text-sm text-slate-300">
+            Seeking... {formatTime(currentTime)}
+          </div>
+        )}
 
         {/* Time display */}
         <div className="flex items-center justify-between px-2 text-sm">
