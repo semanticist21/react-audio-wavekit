@@ -3,18 +3,6 @@ import { Loader2, Pause, Play, RotateCcw, SkipBack, SkipForward, Volume2 } from 
 import { useEffect, useRef, useState } from "react";
 import { AudioWaveform } from "..";
 
-// Reusable loading spinner component
-function LoadingSpinner({ message = "Loading audio..." }: { message?: string }) {
-  return (
-    <div className="flex h-screen w-full items-center justify-center bg-linear-to-br from-slate-900 to-slate-800">
-      <div className="flex flex-col items-center gap-4">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-        <p className="text-sm text-slate-400">{message}</p>
-      </div>
-    </div>
-  );
-}
-
 function AudioWaveformPlayer() {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string>("");
@@ -342,38 +330,39 @@ export const Playground: StoryObj<PlaygroundArgs> = {
       if (wasPlayingRef.current) audio.play();
     };
 
-    if (!audioBlob) return <LoadingSpinner />;
+    if (!audioBlob) {
+      return (
+        <div className="flex h-32 items-center justify-center p-8">
+          <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+        </div>
+      );
+    }
 
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-linear-to-br from-slate-900 to-slate-800 p-8">
-        <div className="flex w-full max-w-3xl flex-col gap-6 rounded-3xl bg-linear-to-br from-slate-800 to-slate-900 p-8 shadow-2xl ring-1 ring-slate-700/50">
-          <div>
-            <h2 className="text-2xl font-bold text-white">Playground</h2>
-            <p className="text-sm text-slate-400">Adjust appearance in Controls panel</p>
-          </div>
-          <AudioWaveform
-            blob={audioBlob}
-            className="h-32 w-full rounded-xl bg-slate-950/50 p-4 ring-1 ring-slate-700/50"
-            currentTime={currentTime}
-            duration={duration}
-            onSeekStart={handleSeekStart}
-            onSeekDrag={handleSeekDrag}
-            onSeekEnd={handleSeekEnd}
-            appearance={{
-              barColor: args.barColor,
-              barWidth: args.barWidth,
-              barGap: args.barGap,
-              barRadius: args.barRadiusFull ? args.barWidth / 2 : args.barRadius,
-              barHeightScale: args.barHeightScale,
-              playheadColor: args.playheadColor,
-              playheadWidth: args.playheadWidth,
-            }}
-          />
-          {audioUrl && (
-            // biome-ignore lint/a11y/useMediaCaption: Demo audio
-            <audio ref={audioRef} src={audioUrl} controls className="w-full" />
-          )}
-        </div>
+      <div className="flex flex-col gap-4 p-8">
+        <AudioWaveform
+          blob={audioBlob}
+          className="h-32 w-full rounded-xl bg-slate-900 p-4"
+          currentTime={currentTime}
+          duration={duration}
+          onSeekStart={handleSeekStart}
+          onSeekDrag={handleSeekDrag}
+          onSeekEnd={handleSeekEnd}
+          appearance={{
+            barColor: args.barColor,
+            barWidth: args.barWidth,
+            barGap: args.barGap,
+            // If barRadiusFull is true, set to half of barWidth (fully rounded)
+            barRadius: args.barRadiusFull ? args.barWidth / 2 : args.barRadius,
+            barHeightScale: args.barHeightScale,
+            playheadColor: args.playheadColor,
+            playheadWidth: args.playheadWidth,
+          }}
+        />
+        {audioUrl && (
+          // biome-ignore lint/a11y/useMediaCaption: Demo audio
+          <audio ref={audioRef} src={audioUrl} controls className="w-full" />
+        )}
       </div>
     );
   },
@@ -447,20 +436,17 @@ export const Simple: Story = {
         .catch(console.error);
     }, []);
 
-    if (!audioBlob) return <LoadingSpinner />;
+    if (!audioBlob) {
+      return (
+        <div className="flex h-screen w-full items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+        </div>
+      );
+    }
 
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-linear-to-br from-slate-900 to-slate-800 p-8">
-        <div className="flex w-full max-w-3xl flex-col gap-6 rounded-3xl bg-linear-to-br from-slate-800 to-slate-900 p-8 shadow-2xl ring-1 ring-slate-700/50">
-          <div>
-            <h2 className="text-2xl font-bold text-white">Simple Waveform</h2>
-            <p className="text-sm text-slate-400">Minimal configuration</p>
-          </div>
-          <AudioWaveform
-            blob={audioBlob}
-            className="h-32 w-full rounded-xl bg-slate-950/50 p-4 ring-1 ring-slate-700/50"
-          />
-        </div>
+      <div className="flex h-screen w-full items-center justify-center">
+        <AudioWaveform blob={audioBlob} style={{ width: 800, height: 128 }} />
       </div>
     );
   },
@@ -483,8 +469,6 @@ export const M4A: Story = {
     const [audioUrl, setAudioUrl] = useState<string>("");
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
-    const [isPlaying, setIsPlaying] = useState(false);
-    const wasPlayingRef = useRef(false);
     const audioRef = useRef<HTMLAudioElement>(null);
     const audioUrlRef = useRef<string>("");
 
@@ -512,100 +496,53 @@ export const M4A: Story = {
 
       const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
       const handleDurationChange = () => setDuration(audio.duration);
-      const handlePlay = () => setIsPlaying(true);
-      const handlePause = () => setIsPlaying(false);
 
       audio.addEventListener("timeupdate", handleTimeUpdate);
       audio.addEventListener("durationchange", handleDurationChange);
-      audio.addEventListener("play", handlePlay);
-      audio.addEventListener("pause", handlePause);
 
       if (audio.duration) setDuration(audio.duration);
 
       return () => {
         audio.removeEventListener("timeupdate", handleTimeUpdate);
         audio.removeEventListener("durationchange", handleDurationChange);
-        audio.removeEventListener("play", handlePlay);
-        audio.removeEventListener("pause", handlePause);
       };
     }, [audioUrl]);
 
-    const togglePlay = () => {
+    const handleSeek = (time: number) => {
       const audio = audioRef.current;
-      if (!audio) return;
-      isPlaying ? audio.pause() : audio.play();
+      if (audio) audio.currentTime = time;
     };
 
-    const handleSeekStart = () => {
-      const audio = audioRef.current;
-      if (!audio) return;
-      wasPlayingRef.current = isPlaying;
-      if (isPlaying) audio.pause();
-    };
-
-    const handleSeekDrag = (time: number) => setCurrentTime(time);
-
-    const handleSeekEnd = (time: number) => {
-      const audio = audioRef.current;
-      if (!audio) return;
-      audio.currentTime = time;
-      if (wasPlayingRef.current) audio.play();
-    };
-
-    const formatTime = (seconds: number) => {
-      const mins = Math.floor(seconds / 60);
-      const secs = Math.floor(seconds % 60);
-      return `${mins}:${secs.toString().padStart(2, "0")}`;
-    };
-
-    if (!audioBlob) return <LoadingSpinner message="Loading M4A..." />;
+    if (!audioBlob) {
+      return (
+        <div className="flex h-32 items-center justify-center p-8">
+          <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+        </div>
+      );
+    }
 
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-linear-to-br from-slate-900 to-slate-800 p-8">
-        <div className="flex w-full max-w-3xl flex-col gap-6 rounded-3xl bg-linear-to-br from-slate-800 to-slate-900 p-8 shadow-2xl ring-1 ring-slate-700/50">
-          <div>
-            <h2 className="text-2xl font-bold text-white">M4A Format Player</h2>
-            <p className="text-sm text-slate-400">AAC audio - Safari/iOS native format</p>
-          </div>
-
-          <AudioWaveform
-            blob={audioBlob}
-            className="h-32 w-full rounded-xl bg-slate-950/50 p-4 ring-1 ring-slate-700/50 transition-all hover:ring-slate-600/50"
-            currentTime={currentTime}
-            duration={duration}
-            onSeekStart={handleSeekStart}
-            onSeekDrag={handleSeekDrag}
-            onSeekEnd={handleSeekEnd}
-            appearance={{
-              barColor: "#22c55e",
-              barWidth: 2,
-              barGap: 1,
-              barRadius: 1,
-              playheadColor: "#f59e0b",
-              playheadWidth: 2,
-            }}
-          />
-
-          <div className="flex items-center justify-between px-2 text-sm">
-            <span className="font-mono text-slate-400">{formatTime(currentTime)}</span>
-            <span className="font-mono text-slate-500">{formatTime(duration)}</span>
-          </div>
-
-          <div className="flex items-center justify-center">
-            <button
-              type="button"
-              onClick={togglePlay}
-              className="rounded-full bg-green-500 p-4 text-white shadow-lg shadow-green-500/25 transition-all hover:bg-green-600 hover:shadow-green-500/40"
-            >
-              {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6 translate-x-0.5" />}
-            </button>
-          </div>
-
-          {audioUrl && (
-            // biome-ignore lint/a11y/useMediaCaption: Demo audio
-            <audio ref={audioRef} src={audioUrl} className="hidden" />
-          )}
-        </div>
+      <div className="flex flex-col gap-4 p-8">
+        <h2 className="text-xl font-semibold text-slate-200">M4A Format (AAC - Safari/iOS native)</h2>
+        <AudioWaveform
+          blob={audioBlob}
+          className="h-32 w-full rounded-xl bg-slate-900 p-4"
+          currentTime={currentTime}
+          duration={duration}
+          onSeekEnd={handleSeek}
+          appearance={{
+            barColor: "#22c55e",
+            barWidth: 2,
+            barGap: 1,
+            barRadius: 1,
+            playheadColor: "#f59e0b",
+            playheadWidth: 2,
+          }}
+        />
+        {audioUrl && (
+          // biome-ignore lint/a11y/useMediaCaption: Demo audio
+          <audio ref={audioRef} src={audioUrl} controls className="w-full" />
+        )}
       </div>
     );
   },
