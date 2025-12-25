@@ -3,6 +3,11 @@
  * Safari: audio/mp4, Chrome/Firefox/Edge: audio/webm
  */
 export function getDefaultMimeType(): string {
+  // SSR safe: return default MIME type on server
+  if (typeof window === "undefined" || typeof MediaRecorder === "undefined") {
+    return "audio/webm";
+  }
+
   // Safari prefers audio/mp4
   if (MediaRecorder.isTypeSupported("audio/mp4")) {
     return "audio/mp4";
