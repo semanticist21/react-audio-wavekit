@@ -3,7 +3,8 @@
 // Uses native Web Audio API first, falls back to WASM decoder on failure
 // ============================================================================
 
-import { MPEGDecoder } from "mpg123-decoder";
+// Dynamic import for SSR safety - WASM loaded only when needed in browser
+type MPEGDecoderType = import("mpg123-decoder").MPEGDecoder;
 
 /**
  * Extract peaks from Float32Array channel data
@@ -43,9 +44,11 @@ async function decodeWithNativeAPI(arrayBuffer: ArrayBuffer): Promise<AudioBuffe
 /**
  * Decode MP3 using WASM decoder (mpg123)
  * Used as fallback when native API fails
+ * Only runs in browser environment (SSR safe)
  */
 async function decodeWithWASM(arrayBuffer: ArrayBuffer): Promise<Float32Array> {
-  const decoder = new MPEGDecoder();
+  const { MPEGDecoder } = await import("mpg123-decoder");
+  const decoder = new MPEGDecoder() as MPEGDecoderType;
   await decoder.ready;
 
   const result = decoder.decode(new Uint8Array(arrayBuffer));
@@ -63,6 +66,11 @@ async function decodeWithWASM(arrayBuffer: ArrayBuffer): Promise<Float32Array> {
 }
 
 export async function decodeAudioBlob(blob: Blob, sampleCount: number): Promise<number[]> {
+  // SSR safe: return empty array in non-browser environment
+  if (typeof window === "undefined") {
+    return [];
+  }
+
   const arrayBuffer = await blob.arrayBuffer();
 
   if (arrayBuffer.byteLength === 0) {

@@ -15,7 +15,9 @@ vi.mock("mpg123-decoder", () => {
   };
 });
 
-type OfflineAudioContextLike = new (...args: unknown[]) => {
+type OfflineAudioContextLike = new (
+  ...args: unknown[]
+) => {
   decodeAudioData: (buffer: ArrayBuffer) => Promise<{ getChannelData: (index: number) => Float32Array }>;
 };
 

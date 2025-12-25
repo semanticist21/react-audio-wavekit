@@ -6,3 +6,7 @@ storybook-static
 *.tsbuildinfo
 .netlify
 .playwright-mcp
+
+# Next.js test app
+next-test/.next
+next-test/node_modules

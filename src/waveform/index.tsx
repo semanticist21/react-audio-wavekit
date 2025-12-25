@@ -118,6 +118,8 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
 
     return () => {
       cancelled = true;
+      // Reset blobRef so the effect can re-run after React Strict Mode double-invoke
+      blobRef.current = null;
     };
   }, [blob, sampleCount, suspense, shouldDecode]);
 
