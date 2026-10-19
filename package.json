@@ -1,6 +1,6 @@
 {
   "name": "react-audio-wavekit",
-  "version": "0.2.49",
+  "version": "0.2.50",
   "description": "React component library for audio waveform visualization and live recording",
   "license": "CC0-1.0",
   "author": "semanticist21",
@@ -88,7 +88,7 @@
     "storybook-react-rsbuild": "^3.6.1",
     "tailwindcss": "4.1.17",
     "typescript": "5.9.3",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.12"
   },
   "dependencies": {
     "mpg123-decoder": "^1.0.3"
